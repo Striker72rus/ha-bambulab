@@ -27,6 +27,7 @@ from .pybambu.const import Features
 
 import voluptuous as vol
 from .pybambu.commands import CHANGE_FILAMENT_TEMPLATE
+from .pybambu.utils import FILAMENT_NAMES
 
 
 class BambuDataUpdateCoordinator(DataUpdateCoordinator):
@@ -377,21 +378,21 @@ class BambuDataUpdateCoordinator(DataUpdateCoordinator):
 def change_filament_spool(self, input):
     command = CHANGE_FILAMENT_TEMPLATE
 
-    # self.custom_filaments[filament["filament_id"]] = name
-
     command["print"]["ams_id"] = input.data.get("ams")
     command["print"]["tray_id"] = input.data.get("tray")
-    command["print"]["tray_color"] = f"{input.data.get("color")}"
-    command["print"]["tray_type"] = f"{input.data.get("type")}"
-    if input.data.get("type") in CONST_FILAMENT_IDX:
-        command["print"]["tray_info_idx"] = CONST_FILAMENT_IDX[input.data.get("type")]
-    else:
-        command["print"]["tray_info_idx"] = ""
+    command["print"]["tray_color"] = input.data.get("color").upper()
+    tray_type = input.data.get("type", "")
+
+    tray_info_idx = "unknown"
+    for key, value in self.client.slicer_settings.custom_filaments.items():
+        if tray_type in value:
+            tray_info_idx = key
+            break
+
+    if tray_info_idx == "unknown":
+        for key, value in FILAMENT_NAMES.items():
+            if value == tray_type:
+                tray_info_idx = key
+                break
+    command["print"]["tray_info_idx"] = tray_info_idx
     self.client.publish(command)
-
-
-CONST_FILAMENT_IDX = {
-    "PLA": "P2a7fc6d",
-    "PETG": "Pe1bd374",
-    "ABS": "P78aa3e4",
-}
