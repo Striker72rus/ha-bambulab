@@ -65,9 +65,15 @@ class BambuDataUpdateCoordinator(DataUpdateCoordinator):
         async def change_filament_spool_ams(data):
             change_filament_spool(self, data)
 
+        printer = self.get_model().info
+
+        service_name = (
+            f"{printer.device_type}_{printer.serial}_change_filament_spool_ams"
+        )
+
         self.hass.services.async_register(
             DOMAIN,
-            "change_filament_spool_ams",
+            service_name,
             change_filament_spool_ams,
             schema=vol.Schema(
                 {
