@@ -382,6 +382,7 @@ def change_filament_spool(self, input):
     command["print"]["tray_id"] = input.data.get("tray")
     command["print"]["tray_color"] = input.data.get("color").upper()
     tray_type = input.data.get("type", "")
+    command["print"]["tray_type"] = tray_type
 
     tray_info_idx = "unknown"
     for key, value in self.client.slicer_settings.custom_filaments.items():
