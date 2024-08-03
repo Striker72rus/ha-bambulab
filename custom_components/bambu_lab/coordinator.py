@@ -383,4 +383,15 @@ def change_filament_spool(self, input):
     command["print"]["tray_id"] = input.data.get("tray")
     command["print"]["tray_color"] = f"{input.data.get("color")}"
     command["print"]["tray_type"] = f"{input.data.get("type")}"
+    if input.data.get("type") in CONST_FILAMENT_IDX:
+        command["print"]["tray_info_idx"] = CONST_FILAMENT_IDX[input.data.get("type")]
+    else:
+        command["print"]["tray_info_idx"] = ""
     self.client.publish(command)
+
+
+CONST_FILAMENT_IDX = {
+    "PLA": "P2a7fc6d",
+    "PETG": "Pe1bd374",
+    "ABS": "P78aa3e4",
+}

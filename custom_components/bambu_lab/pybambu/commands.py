@@ -58,7 +58,7 @@ CHANGE_FILAMENT_TEMPLATE = {
         "command": "ams_filament_setting",
         "ams_id": 255,  # 255 is external spool, ams id 0-N for an AMS
         "tray_id": 254,  # 254 is external spool here, 0-3 for an AMS
-        "tray_info_idx": "Pe1bd374",  # one of the predefined codes in the slicer. This is mandatory
+        "tray_info_idx": "",  # one of the predefined codes in the slicer. This is mandatory
         "tray_color": "00000000",
         "nozzle_temp_min": 190,
         "nozzle_temp_max": 280,
