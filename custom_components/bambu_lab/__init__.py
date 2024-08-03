@@ -6,6 +6,7 @@ from .const import DOMAIN, LOGGER, PLATFORMS
 from .coordinator import BambuDataUpdateCoordinator
 from .config_flow import CONFIG_VERSION
 
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up the Bambu Lab integration."""
     LOGGER.debug("async_setup_entry Start")
@@ -25,8 +26,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Now that we've finished initialization fully, start the MQTT connection so that any necessary
     # sensor reinitialization happens entirely after the initial setup.
     await coordinator.start_mqtt()
-    
+
     return True
+
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload the Bambu Lab integration."""
@@ -46,10 +48,12 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     LOGGER.debug("Async Setup Unload Done")
     return True
 
+
 async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Reload the config entry when it changed."""
     LOGGER.debug("Async Setup Reload")
     await hass.config_entries.async_reload(entry.entry_id)
+
 
 async def async_migrate_entry(hass, config_entry: ConfigEntry):
     """Migrate old entry."""
@@ -57,7 +61,7 @@ async def async_migrate_entry(hass, config_entry: ConfigEntry):
     if config_entry.version > CONFIG_VERSION:
         # This means the user has downgraded from a future version
         return False
-    
+
     if config_entry.version == CONFIG_VERSION:
         # This means the major version still matches. We don't currently use minor versions.
         return True
@@ -73,20 +77,25 @@ async def async_migrate_entry(hass, config_entry: ConfigEntry):
         # "host": "us.mqtt.bambulab.com" / Local IP address
         # "username": username,
         # "access_code": authToken / access_code depending if local mqtt or not
-        
-        data = {
-                "device_type": old_data['device_type'],
-                "serial": old_data['serial']
-        }
+
+        data = {"device_type": old_data["device_type"], "serial": old_data["serial"]}
         options = {
-                "region": "",
-                "email": "",
-                "username": old_data['username'] if (old_data.get('username', 'bblp') != "bblp") else "",
-                "name": old_data['device_type'], # Default device name to model name
-                "host": old_data['host'] if (old_data['host'] != "us.mqtt.bambulab.com") else "",
-                "local_mqtt": (old_data['host'] != "us.mqtt.bambulab.com"),
-                "auth_token": old_data['access_code'] if (old_data['host'] == "us.mqtt.bambulab.com") else "",
-                "access_code": old_data['access_code'] if (old_data['host'] != "us.mqtt.bambulab.com") else ""
+            "region": "",
+            "email": "",
+            "username": old_data["username"]
+            if (old_data.get("username", "bblp") != "bblp")
+            else "",
+            "name": old_data["device_type"],  # Default device name to model name
+            "host": old_data["host"]
+            if (old_data["host"] != "us.mqtt.bambulab.com")
+            else "",
+            "local_mqtt": (old_data["host"] != "us.mqtt.bambulab.com"),
+            "auth_token": old_data["access_code"]
+            if (old_data["host"] == "us.mqtt.bambulab.com")
+            else "",
+            "access_code": old_data["access_code"]
+            if (old_data["host"] != "us.mqtt.bambulab.com")
+            else "",
         }
 
         config_entry.version = CONFIG_VERSION

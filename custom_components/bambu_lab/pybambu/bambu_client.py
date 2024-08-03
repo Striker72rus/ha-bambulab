@@ -29,14 +29,15 @@ from .commands import (
 
 
 class WatchdogThread(threading.Thread):
-
     def __init__(self, client):
         self._client = client
         self._watchdog_fired = False
         self._stop_event = threading.Event()
         self._last_received_data = time.time()
         super().__init__()
-        self.setName(f"{self._client._device.info.device_type}-Watchdog-{threading.get_native_id()}")
+        self.setName(
+            f"{self._client._device.info.device_type}-Watchdog-{threading.get_native_id()}"
+        )
 
     def stop(self):
         self._stop_event.set()
@@ -56,7 +57,9 @@ class WatchdogThread(threading.Thread):
                 break
             interval = time.time() - self._last_received_data
             if not self._watchdog_fired and (interval > WATCHDOG_TIMER):
-                LOGGER.debug(f"Watchdog fired. No data received for {math.floor(interval)} seconds for {self._client._serial}.")
+                LOGGER.debug(
+                    f"Watchdog fired. No data received for {math.floor(interval)} seconds for {self._client._serial}."
+                )
                 self._watchdog_fired = True
                 self._client._on_watchdog_fired()
             elif interval < WATCHDOG_TIMER:
@@ -70,7 +73,9 @@ class ChamberImageThread(threading.Thread):
         self._client = client
         self._stop_event = threading.Event()
         super().__init__()
-        self.setName(f"{self._client._device.info.device_type}-Chamber-{threading.get_native_id()}")
+        self.setName(
+            f"{self._client._device.info.device_type}-Chamber-{threading.get_native_id()}"
+        )
 
     def stop(self):
         self._stop_event.set()
@@ -80,23 +85,23 @@ class ChamberImageThread(threading.Thread):
 
         auth_data = bytearray()
 
-        username = 'bblp'
+        username = "bblp"
         access_code = self._client._access_code
         hostname = self._client.host
         port = 6000
         MAX_CONNECT_ATTEMPTS = 12
         connect_attempts = 0
 
-        auth_data += struct.pack("<I", 0x40)   # '@'\0\0\0
-        auth_data += struct.pack("<I", 0x3000) # \0'0'\0\0
-        auth_data += struct.pack("<I", 0)      # \0\0\0\0
-        auth_data += struct.pack("<I", 0)      # \0\0\0\0
+        auth_data += struct.pack("<I", 0x40)  # '@'\0\0\0
+        auth_data += struct.pack("<I", 0x3000)  # \0'0'\0\0
+        auth_data += struct.pack("<I", 0)  # \0\0\0\0
+        auth_data += struct.pack("<I", 0)  # \0\0\0\0
         for i in range(0, len(username)):
-            auth_data += struct.pack("<c", username[i].encode('ascii'))
+            auth_data += struct.pack("<c", username[i].encode("ascii"))
         for i in range(0, 32 - len(username)):
             auth_data += struct.pack("<x")
         for i in range(0, len(access_code)):
-            auth_data += struct.pack("<c", access_code[i].encode('ascii'))
+            auth_data += struct.pack("<c", access_code[i].encode("ascii"))
         for i in range(0, 32 - len(access_code)):
             auth_data += struct.pack("<x")
 
@@ -104,10 +109,10 @@ class ChamberImageThread(threading.Thread):
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
 
-        jpeg_start = bytearray([0xff, 0xd8, 0xff, 0xe0])
-        jpeg_end = bytearray([0xff, 0xd9])
+        jpeg_start = bytearray([0xFF, 0xD8, 0xFF, 0xE0])
+        jpeg_end = bytearray([0xFF, 0xD9])
 
-        read_chunk_size = 4096 # 4096 is the max we'll get even if we increase this.
+        read_chunk_size = 4096  # 4096 is the max we'll get even if we increase this.
 
         # Payload format for each image is:
         # 16 byte header:
@@ -146,15 +151,17 @@ class ChamberImageThread(threading.Thread):
                     while not self._stop_event.is_set():
                         try:
                             dr = sslSock.recv(read_chunk_size)
-                            #LOGGER.debug(f"Received {len(dr)} bytes.")
+                            # LOGGER.debug(f"Received {len(dr)} bytes.")
 
                         except ssl.SSLWantReadError:
-                            #LOGGER.debug("SSLWantReadError")
+                            # LOGGER.debug("SSLWantReadError")
                             time.sleep(1)
                             continue
 
                         except Exception as e:
-                            LOGGER.error("A Chamber Image thread inner exception occurred:")
+                            LOGGER.error(
+                                "A Chamber Image thread inner exception occurred:"
+                            )
                             LOGGER.error(f"Exception. Type: {type(e)} Args: {e}")
                             time.sleep(1)
                             continue
@@ -163,7 +170,9 @@ class ChamberImageThread(threading.Thread):
                             img += dr
                             if len(img) > payload_size:
                                 # We got more data than we expected.
-                                LOGGER.error(f"Unexpected image payload received: {len(img)} > {payload_size}")
+                                LOGGER.error(
+                                    f"Unexpected image payload received: {len(img)} > {payload_size}"
+                                )
                                 # Reset buffer
                                 img = None
                             elif len(img) == payload_size:
@@ -178,7 +187,7 @@ class ChamberImageThread(threading.Thread):
 
                                 # Reset buffer
                                 img = None
-                            # else:     
+                            # else:
                             # Otherwise we need to continue looping without reseting the buffer to receive the remaining data
                             # and without delaying.
 
@@ -187,11 +196,13 @@ class ChamberImageThread(threading.Thread):
                             # Reset connect_attempts now we know the connect was successful.
                             connect_attempts = 0
                             img = bytearray()
-                            payload_size = int.from_bytes(dr[0:3], byteorder='little')
+                            payload_size = int.from_bytes(dr[0:3], byteorder="little")
 
                         elif len(dr) == 0:
                             # This occurs if the wrong access code was provided.
-                            LOGGER.error("Chamber image connection rejected by the printer. Check provided access code and IP address.")
+                            LOGGER.error(
+                                "Chamber image connection rejected by the printer. Check provided access code and IP address."
+                            )
                             # Sleep for a short while and then re-attempt the connection.
                             time.sleep(5)
                             break
@@ -223,7 +234,9 @@ class MqttThread(threading.Thread):
         self._client = client
         self._stop_event = threading.Event()
         super().__init__()
-        self.setName(f"{self._client._device.info.device_type}-Mqtt-{threading.get_native_id()}")
+        self.setName(
+            f"{self._client._device.info.device_type}-Mqtt-{threading.get_native_id()}"
+        )
 
     def stop(self):
         self._stop_event.set()
@@ -233,7 +246,11 @@ class MqttThread(threading.Thread):
         exceptionSeen = ""
         while True:
             try:
-                host = self._client.host if self._client._local_mqtt else self._client.bambu_cloud.cloud_mqtt_host
+                host = (
+                    self._client.host
+                    if self._client._local_mqtt
+                    else self._client.bambu_cloud.cloud_mqtt_host
+                )
                 LOGGER.debug(f"Connect: Attempting Connection to {host}")
                 self._client.client.connect(host, self._client._port, keepalive=5)
 
@@ -277,12 +294,25 @@ class MqttThread(threading.Thread):
 @dataclass
 class BambuClient:
     """Initialize Bambu Client to connect to MQTT Broker"""
+
     _watchdog = None
     _camera = None
     _usage_hours: float
 
-    def __init__(self, device_type: str, serial: str, host: str, local_mqtt: bool, region: str, email: str,
-                 username: str, auth_token: str, access_code: str, usage_hours: float = 0, manual_refresh_mode: bool = False):
+    def __init__(
+        self,
+        device_type: str,
+        serial: str,
+        host: str,
+        local_mqtt: bool,
+        region: str,
+        email: str,
+        username: str,
+        auth_token: str,
+        access_code: str,
+        usage_hours: float = 0,
+        manual_refresh_mode: bool = False,
+    ):
         self.callback = None
         self.host = host
         self._local_mqtt = local_mqtt
@@ -351,12 +381,14 @@ class BambuClient:
         LOGGER.debug("On Connect: Request push all")
         self.publish(PUSH_ALL)
 
-    def on_connect(self,
-                   client_: mqtt.Client,
-                   userdata: None,
-                   flags: dict[str, Any],
-                   result_code: int,
-                   properties: mqtt.Properties | None = None, ):
+    def on_connect(
+        self,
+        client_: mqtt.Client,
+        userdata: None,
+        flags: dict[str, Any],
+        result_code: int,
+        properties: mqtt.Properties | None = None,
+    ):
         """Handle connection"""
         LOGGER.info("On Connect: Connected to Broker")
         self._on_connect()
@@ -374,12 +406,14 @@ class BambuClient:
             self._camera = ChamberImageThread(self)
             self._camera.start()
 
-    def try_on_connect(self,
-                       client_: mqtt.Client,
-                       userdata: None,
-                       flags: dict[str, Any],
-                       result_code: int,
-                       properties: mqtt.Properties | None = None, ):
+    def try_on_connect(
+        self,
+        client_: mqtt.Client,
+        userdata: None,
+        flags: dict[str, Any],
+        result_code: int,
+        properties: mqtt.Properties | None = None,
+    ):
         """Handle connection"""
         LOGGER.info("On Connect: Connected to Broker")
         self._connected = True
@@ -389,14 +423,11 @@ class BambuClient:
         LOGGER.debug("On Connect: Getting version info")
         self.publish(GET_VERSION)
 
-    def on_disconnect(self,
-                      client_: mqtt.Client,
-                      userdata: None,
-                      result_code: int):
+    def on_disconnect(self, client_: mqtt.Client, userdata: None, result_code: int):
         """Called when MQTT Disconnects"""
         LOGGER.warn(f"On Disconnect: Disconnected from Broker: {result_code}")
         self._on_disconnect()
-    
+
     def _on_disconnect(self):
         LOGGER.warn("_on_disconnect")
         self._connected = False
@@ -432,7 +463,7 @@ class BambuClient:
                 # device has connected/disconnected (e.g. turned on/off)
                 if json_data.get("event").get("event") == "client.connected":
                     LOGGER.debug("Client connected event received.")
-                    self._on_disconnect() # We aren't guaranteed to recieve a client.disconnected event.
+                    self._on_disconnect()  # We aren't guaranteed to recieve a client.disconnected event.
                     self._on_connect()
                 elif json_data.get("event").get("event") == "client.disconnected":
                     LOGGER.debug("Client disconnected event received.")
@@ -446,8 +477,11 @@ class BambuClient:
                     if self._manual_refresh_mode:
                         self.disconnect()
                     if json_data.get("print").get("msg", 0) == 0:
-                        self._refreshed= False
-                elif json_data.get("info") and json_data.get("info").get("command") == "get_version":
+                        self._refreshed = False
+                elif (
+                    json_data.get("info")
+                    and json_data.get("info").get("command") == "get_version"
+                ):
                     LOGGER.debug("Got Version Data")
                     self._device.info_update(data=json_data.get("info"))
         except Exception as e:
@@ -506,7 +540,10 @@ class BambuClient:
         def on_message(client, userdata, message):
             json_data = json.loads(message.payload)
             LOGGER.debug(f"Try Connection: Got '{json_data}'")
-            if json_data.get("info") and json_data.get("info").get("command") == "get_version":
+            if (
+                json_data.get("info")
+                and json_data.get("info").get("command") == "get_version"
+            ):
                 LOGGER.debug("Got Version Command Data")
                 self._device.info_update(data=json_data.get("info"))
                 result.put(True)
