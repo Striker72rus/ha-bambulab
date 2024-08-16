@@ -386,7 +386,7 @@ def change_filament_spool(self, input):
 
     command["print"]["ams_id"] = input.data.get("ams")
     command["print"]["tray_id"] = input.data.get("tray")
-    command["print"]["tray_color"] = input.data.get("color").upper()
+    command["print"]["tray_color"] = input.data.get("color").upper().replace('#', '') 
     tray_type = input.data.get("type", "")
     command["print"]["tray_type"] = tray_type
 
