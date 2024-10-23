@@ -17,7 +17,7 @@ If you feel this integration was valuable and want to support it in other ways, 
 
 ## Setup
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=greghesp&repository=ha-bambulab&category=Integration)
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=striker72rus&repository=ha-bambulab&category=Integration)
 
 To install this integration, add this GitHub Repo to the HACS Custom Repositories, or click the badge above.
 

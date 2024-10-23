@@ -1428,7 +1428,8 @@ class SlicerSettings:
             LOGGER.debug("Got custom filaments: %s", self.custom_filaments)
 
     def update(self):
-        self.custom_filaments = {}
+        return
+        #self.custom_filaments = {}
         # As of late 10/22 this is now return access denied (403) and breaking the integration. Disable it for now.
         # if self._client.bambu_cloud.auth_token != "":
         #     LOGGER.debug("Loading slicer settings")

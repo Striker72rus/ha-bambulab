@@ -13,6 +13,7 @@ import time
 import threading
 from typing import Any
 
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers import device_registry
 from homeassistant.helpers.entity import DeviceInfo
@@ -25,10 +26,15 @@ import paho.mqtt.client as mqtt
 from .pybambu import BambuClient
 from .pybambu.const import Features
 
+import voluptuous as vol
+from .pybambu.commands import CHANGE_FILAMENT_TEMPLATE
+from .pybambu.utils import FILAMENT_NAMES
+
 class BambuDataUpdateCoordinator(DataUpdateCoordinator):
     hass: HomeAssistant
     _updatedDevice: bool
     latest_usage_hours: float
+    custom_filament_names: {}
 
     def __init__(self, hass, *, entry: ConfigEntry) -> None:
         self._hass = hass
@@ -48,6 +54,9 @@ class BambuDataUpdateCoordinator(DataUpdateCoordinator):
                                   usage_hours = self.latest_usage_hours,
                                   manual_refresh_mode = entry.options.get('manual_refresh_mode', False))
             
+        self.client.slicer_settings.custom_filaments = load_dict(hass.config.path('custom_filaments.json'))
+        LOGGER.debug(f"Load custom_filaments: {self.client.slicer_settings.custom_filaments}")
+
         self._updatedDevice = False
         self.data = self.get_model()
         self._eventloop = asyncio.get_running_loop()
@@ -59,6 +68,28 @@ class BambuDataUpdateCoordinator(DataUpdateCoordinator):
         )
 
         self.hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, self._async_shutdown)
+
+        async def change_filament_spool_ams(data):
+            change_filament_spool(self, data, self.client.slicer_settings.custom_filaments)
+
+        printer = self.get_model().info
+        service_name = (
+            f"{printer.device_type}_{printer.serial}_change_filament_spool_ams"
+        )
+
+        self.hass.services.async_register(
+            DOMAIN,
+            service_name,
+            change_filament_spool_ams,
+            schema=vol.Schema(
+                {
+                    vol.Required("ams"): int,
+                    vol.Required("tray"): int,
+                    vol.Required("type"): str,
+                    vol.Required("color"): str,
+                }
+            ),
+        )
 
     @callback
     def _async_shutdown(self, event: Event) -> None:
@@ -324,3 +355,36 @@ class BambuDataUpdateCoordinator(DataUpdateCoordinator):
             title=self.get_model().info.serial,
             data=self.config_entry.data,
             options=options)
+
+def change_filament_spool(self, input, custom_filament_names):
+    command = CHANGE_FILAMENT_TEMPLATE
+    # self.custom_filaments[filament["filament_id"]] = name
+    command["print"]["ams_id"] = input.data.get("ams")
+    command["print"]["tray_id"] = input.data.get("tray")
+    command["print"]["tray_color"] = input.data.get("color").upper().replace('#', '') 
+    tray_type = input.data.get("type", "")
+    command["print"]["tray_type"] = tray_type
+
+    LOGGER.debug(f"tray_type: {tray_type}")
+    LOGGER.debug(f"CUSTOM_FILAMENT_NAMES: {custom_filament_names}")
+
+    tray_info_idx = "unknown"
+    for key, value in self.client.slicer_settings.custom_filaments.items():
+        if tray_type in value:
+            tray_info_idx = key
+            break
+    if tray_type in custom_filament_names:
+        tray_info_idx = custom_filament_names[tray_type]
+    if tray_info_idx == "unknown":
+        for key, value in FILAMENT_NAMES.items():
+            if value == tray_type:
+                tray_info_idx = key
+                break
+
+    LOGGER.debug(f"tray_info_idx: {tray_info_idx}")
+    command["print"]["tray_info_idx"] = tray_info_idx
+    self.client.publish(command)
+
+def load_dict(filename: str) -> dict:
+    with open(filename) as f:
+        return json.load(f);
