@@ -336,22 +336,20 @@ class BambuCloud:
     # }
 
     def get_slicer_settings(self) -> dict:
-        LOGGER.debug("DISABLED: Getting slicer settings from Bambu Cloud")
-        # Disabled for now since it may be contributing to cloudflare detection speed.
-        # 
-        # if curl_available:
-        #     response = curl_requests.get(get_Url(BambuUrl.SLICER_SETTINGS, self._region), headers=self._get_headers_with_auth_token(), timeout=10, impersonate=IMPERSONATE_BROWSER)
-        #     if response.status_code == 403:
-        #         if 'cloudflare' in response.text:
-        #             LOGGER.error(f"Cloudflare blocked slicer settings lookup.")
-        #             return None
+        LOGGER.debug("Getting slicer settings from Bambu Cloud")
+        if curl_available:
+            response = curl_requests.get(get_Url(BambuUrl.SLICER_SETTINGS, self._region), headers=self._get_headers_with_auth_token(), timeout=10, impersonate=IMPERSONATE_BROWSER)
+            if response.status_code == 403:
+                if 'cloudflare' in response.text:
+                    LOGGER.error(f"Cloudflare blocked slicer settings lookup.")
+                    return None
                 
-        #     if response.status_code >= 400:
-        #         LOGGER.error(f"Slicer settings load failed: {response.status_code}")
-        #         LOGGER.error(f"Slicer settings load failed: '{response.text}'")
-        #         return None
+            if response.status_code >= 400:
+                LOGGER.error(f"Slicer settings load failed: {response.status_code}")
+                LOGGER.error(f"Slicer settings load failed: '{response.text}'")
+                return None
             
-        #     return response.json()
+            return response.json()
         return None
         
     # The task list is of the following form with a 'hits' array with typical 20 entries.
