@@ -122,6 +122,10 @@ def load_dict(filename: str) -> dict:
     with open(filename) as f:
         return json.load(f);
 
+def load_custom_filaments(hass):
+    with open(hass.config.path("bambulab/custom_filaments.json")) as f:
+        return json.load(f);
+
 
 FILAMENT_NAMES = load_dict(Path(__file__).with_name('filaments.json'))
 

@@ -21,7 +21,8 @@ from .pybambu import BambuClient
 from .pybambu.const import Features
 
 import voluptuous as vol
-from .pybambu.commands import CHANGE_FILAMENT_TEMPLATE
+from .pybambu.utils import change_filament_spool
+from .pybambu.const import FILAMENT_NAMES
 
 class BambuDataUpdateCoordinator(DataUpdateCoordinator):
     hass: HomeAssistant
@@ -50,7 +51,7 @@ class BambuDataUpdateCoordinator(DataUpdateCoordinator):
         self.hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, self._async_shutdown)
 
         async def change_filament_spool_ams(data):
-            change_filament_spool(self, data, self.client.slicer_settings.custom_filaments)
+            change_filament_spool(self, hass, data, self.client.slicer_settings.custom_filaments, FILAMENT_NAMES)
         device_type = self.config_entry.data["device_type"]
         serial = self.config_entry.data["serial"]
         service_name = (
@@ -386,20 +387,4 @@ class BambuDataUpdateCoordinator(DataUpdateCoordinator):
         # Force reload of sensors.
         return await self.hass.config_entries.async_reload(self._entry.entry_id)
 
-def change_filament_spool(self, input, custom_filaments):
-    command = CHANGE_FILAMENT_TEMPLATE
-    # self.custom_filaments[filament["filament_id"]] = name
-    command["print"]["ams_id"] = input.data.get("ams")
-    command["print"]["tray_id"] = input.data.get("tray")
-    command["print"]["tray_color"] = input.data.get("color").upper().replace('#', '') 
-    tray_type = input.data.get("type", "")
-    command["print"]["tray_type"] = tray_type
-    LOGGER.debug(f"tray_type: {tray_type}")
-    for key, value in custom_filaments.items():
-        if tray_type in value:
-            tray_info_idx = key
-            LOGGER.debug(f"Found in self.custom_filaments: {tray_info_idx}")
-            break
-    LOGGER.debug(f"tray_info_idx: {tray_info_idx}")
-    command["print"]["tray_info_idx"] = tray_info_idx
-    self.client.publish(command)
+

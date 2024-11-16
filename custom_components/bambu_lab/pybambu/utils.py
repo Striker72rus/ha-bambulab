@@ -13,10 +13,11 @@ from .const import (
     LOGGER,
     BAMBU_URL,
     FansEnum,
-    TempEnum
+    TempEnum,
+    load_custom_filaments
 )
 from .commands import SEND_GCODE_TEMPLATE
-
+from .commands import CHANGE_FILAMENT_TEMPLATE
 
 def search(lst, predicate, default={}):
     """Search an array for a string"""
@@ -246,3 +247,40 @@ def get_Url(url: str, region: str):
     if region == "China":
         urlstr = urlstr.replace('.com', '.cn')
     return urlstr
+
+def change_filament_spool(self, hass, input, custom_filaments, filaments):
+    command = CHANGE_FILAMENT_TEMPLATE
+    command["print"]["ams_id"] = input.data.get("ams")
+    command["print"]["tray_id"] = input.data.get("tray")
+    command["print"]["tray_color"] = input.data.get("color").upper().replace('#', '') 
+    tray_type = input.data.get("type", "")
+    command["print"]["tray_type"] = tray_type
+    LOGGER.debug(f"tray_type: {tray_type}")
+    tray_info_idx = "unknown"
+    for key, value in custom_filaments.items():
+        if tray_type in value:
+            tray_info_idx = key
+            LOGGER.debug(f"Found in custom_filaments: {tray_info_idx}")
+            break
+        
+#    if tray_info_idx == "unknown":
+#        custom_filaments = load_custom_filaments(hass)
+#        for key, value in custom_filaments.items():
+#            if tray_type in value:
+#                tray_info_idx = key
+#                LOGGER.debug(f"Found in custom_filaments: {tray_info_idx}")
+#                break
+
+    if tray_info_idx == "unknown":
+        for key, value in filaments.items():
+            if tray_type in value:
+                tray_info_idx = key
+                LOGGER.debug(f"Found in filaments: {tray_info_idx}")
+                break
+
+    if tray_info_idx == "unknown":    
+        LOGGER.error(f"Not Found tray_info_idx filaments: {command}")
+        return
+    LOGGER.debug(f"tray_info_idx: {tray_info_idx}")
+    command["print"]["tray_info_idx"] = tray_info_idx
+    self.client.publish(command)
