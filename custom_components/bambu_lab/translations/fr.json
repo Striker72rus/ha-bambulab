@@ -5,18 +5,23 @@
       "event_print_failed": "Échec de l'impression",
       "event_print_finished": "Impression terminée",
       "event_print_started": "L'impression a commencé",
-      "event_printer_error": "Erreur d'imprimante détectée"
+      "event_print_error": "Erreur d'impression",
+      "event_print_error_cleared": "Erreur d'impression effacée",
+      "event_printer_error": "Erreur HMS",
+      "event_printer_error_cleared": "Erreur HMS effacée"
     }
   },
   "config": {
     "abort": {
-      "already_configured": "L'appareil est déjà configuré"
+      "already_configured": "L'appareil est déjà configuré",
+      "no_printers": "Aucune imprimante non configurée n’a été trouvée dans le compte.",
+      "cloudflare": "Cloudflare a bloqué la tentative de connexion.",
+      "curl_unavailable": "La bibliothèque curl_cffi n'est pas disponible."
     },
     "error": {
       "cannot_connect": "Echec de la connexion. Vérifiez les informations d’identification.",
       "cannot_connect_local_ip": "Echec de la connexion. Vérifiez l’adresse IP fournie.",
       "cannot_connect_local_all": "Echec de la connexion. Vérifiez les paramètres fournis.",
-      "no_printers": "Aucune imprimante non configurée n’a été trouvée dans le compte.",
       "invalid_auth": "Authentification invalide.",
       "unknown": "Erreur inattendue.",
       "verifyCode": "Un code de vérification est requis. ",
@@ -72,6 +77,10 @@
     }
   },
   "options": {
+    "abort": {
+      "cloudflare": "Cloudflare a bloqué la tentative de connexion.",
+      "curl_unavailable": "La bibliothèque curl_cffi n'est pas disponible."
+    },
     "error": {
       "cannot_connect": "Echec de la connexion. Vérifiez les informations d’identification.",
       "cannot_connect_local_ip": "Echec de la connexion. Vérifiez l’adresse IP fournie.",
@@ -566,6 +575,12 @@
     "switch": {
       "manual": {
         "name": "Mode d’actualisation manuelle"
+      },
+      "camera": {
+        "name": "Activer la caméra"
+      },
+      "imagecamera": {
+        "name": "Utiliser une caméra à capteur d'image"
       }
     }
   }

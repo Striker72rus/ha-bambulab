@@ -5,18 +5,23 @@
       "event_print_failed": "打印失败",
       "event_print_finished": "打印完成",
       "event_print_started": "开始打印",
-      "event_printer_error": "检测到打印机错误"
+      "event_print_error": "打印错误",
+      "event_print_error_cleared": "打印错误已清除",
+      "event_printer_error": "移动管理系统错误",
+      "event_printer_error_cleared": "HMS 错误已清除"
     }
   },
   "config": {
     "abort": {
-      "already_configured": "设备已配置"
+      "already_configured": "设备已配置",
+      "no_printers": "在帐户中未找到未配置的打印机",
+      "cloudflare": "Cloudflare 已阻止连接尝试。",
+      "curl_unavailable": "curl_cffi 库不可用。"
     },
     "error": {
       "cannot_connect": "连接失败。检查凭据。",
       "cannot_connect_local_ip": "连接失败。检查提供的 IP 地址。",
       "cannot_connect_local_all": "连接失败。检查提供的设置。",
-      "no_printers": "在帐户中未找到未配置的打印机",
       "invalid_auth": "无效的身份验证",
       "unknown": "意外错误",
       "verifyCode": "需要验证码。",
@@ -72,6 +77,10 @@
     }
   },
   "options": {
+    "abort": {
+      "cloudflare": "Cloudflare 已阻止连接尝试。",
+      "curl_unavailable": "curl_cffi 库不可用。"
+    },
     "error": {
       "cannot_connect": "连接失败。检查凭据。",
       "cannot_connect_local_ip": "连接失败。检查提供的 IP 地址。",
@@ -566,6 +575,12 @@
     "switch": {
       "manual": {
         "name": "手动刷新模式"
+      },
+      "camera": {
+        "name": "启用相机"
+      },
+      "imagecamera": {
+        "name": "使用图像传感器相机"
       }
     }
   }

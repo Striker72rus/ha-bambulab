@@ -287,7 +287,7 @@ class BambuClient:
 
     def __init__(self, config):
         self.host = config['host']
-        self.callback = None
+        self._callback = None
 
         self._access_code = config.get('access_code', '')
         self._auth_token = config.get('auth_token', '')
@@ -305,13 +305,23 @@ class BambuClient:
 
         self._device = Device(self)
         self.bambu_cloud = BambuCloud(
-            config.get('region', ''),
-            config.get('email', ''),
-            config.get('username', ''),
-            config.get('auth_token', '')
+            region = config.get('region', ''),
+            email = config.get('email', ''),
+            username = config.get('username', ''),
+            auth_token = config.get('auth_token', '')
         )
         self.slicer_settings = SlicerSettings(self)
+        language = config.get('user_language', 'pt')
+        if 'zh' in language:
+            language = 'zh-CN'
+        else:
+            language = language[:2]
+        self._user_language = language
 
+    @property
+    def user_language(self):
+        return self._user_language
+    
     @property
     def connected(self):
         """Return if connected to server"""
@@ -329,11 +339,15 @@ class BambuClient:
             self.disconnect()
         else:
             # Reconnect normally
-            self.connect(self.callback)
+            self.connect(self._callback)
 
     @property
     def camera_enabled(self):
         return self._enable_camera
+    
+    def callback(self, event: str):
+        if self._callback is not None:
+            self._callback(event)
 
     def set_camera_enabled(self, enable):
         self._enable_camera = enable
@@ -349,7 +363,7 @@ class BambuClient:
     async def connect(self, callback):
         """Connect to the MQTT Broker"""
         self.client = mqtt.Client()
-        self.callback = callback
+        self._callback = callback
         self.client.on_connect = self.on_connect
         self.client.on_disconnect = self.on_disconnect
         self.client.on_message = self.on_message
@@ -512,7 +526,7 @@ class BambuClient:
         """Force refresh data"""
 
         if self._manual_refresh_mode:
-            self.connect(self.callback)
+            self.connect(self._callback)
         else:
             LOGGER.debug("Force Refresh: Getting Version Info")
             self._refreshed = True

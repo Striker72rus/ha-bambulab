@@ -38,7 +38,7 @@ function Get-GoogleTranslation
     -Method Get `
     -ContentType 'application/json'
 
-  $result = ($Translator.Content.TrimStart('[').TrimEnd(']') -split ',' | select -First 1).TrimStart('"').TrimEnd('"')
+  $result = ($Translator.Content.TrimStart('[').TrimEnd(']') -split ',' | select-object -First 1).TrimStart('"').TrimEnd('"')
   $result = $result.Replace("\\n", "\n")
   $result = $result.Replace("\u003e", ">")
 
@@ -74,7 +74,6 @@ function Convert-File
       if ($isString)
       {
         $targetKey = $matches[2]
-        $targetContent = $matches[3]
         Write-Host "Comparing $($sourceKey):$i to $($targetKey):$targetIndex"
         if ($sourceKey -eq $targetKey)
         {
@@ -115,13 +114,12 @@ function Convert-File
   }
 }
 
-$sourceDir = "\\wsl.localhost\Debian\home\adrian\repo\ha-bambulab\custom_components\bambu_lab\translations"
+$sourceDir = "$PSScriptRoot\..\custom_components\bambu_lab\translations"
 
 $english = Get-Content -Encoding UTF8 -Path "$sourceDir\en.json"
 
 $languageFiles = Get-ChildItem "$sourceDir\*.json"
 
-$node = $english
 foreach ($file in $languageFiles)
 {
   $language = $file.BaseName
@@ -143,7 +141,10 @@ foreach ($file in $languageFiles)
   $langFile = Get-Content -Encoding UTF8 -Path $file
 
   $newContent = Convert-File $english $langFile $language
-  ($newContent -join "`n") + "`n" | Set-Content -NoNewLine -Encoding UTF8 $file
+  $newContent = ($newContent -join "`n") + "`n"
+  
+  # Use Set-Content with UTF8 encoding without BOM
+  [System.IO.File]::WriteAllText($file, $newContent, [System.Text.UTF8Encoding]::new($false))
 
   # Convert CRLFs to LFs only.
   # Note:

@@ -5,18 +5,23 @@
       "event_print_failed": "Impressão falhada",
       "event_print_finished": "Impressão terminada",
       "event_print_started": "Impressão iniciada",
-      "event_printer_error": "Erro na impressora detetado"
+      "event_print_error": "Erro de impressão",
+      "event_print_error_cleared": "Erro de impressão eliminado",
+      "event_printer_error": "Erro HMS",
+      "event_printer_error_cleared": "Erro HMS eliminado"
     }
   },
   "config": {
     "abort": {
-      "already_configured": "O dispositivo já está configurado"
+      "already_configured": "O dispositivo já está configurado",
+      "no_printers": "Nenhuma impressora não configurada encontrada na conta.",
+      "cloudflare": "Cloudflare bloqueou a tentativa de conexão.",
+      "curl_unavailable": "A biblioteca curl_cffi não está disponível."
     },
     "error": {
       "cannot_connect": "Falha ao ligar. Verifique as credenciais.",
       "cannot_connect_local_ip": "Falha ao ligar. Verifique o endereço IP fornecido.",
       "cannot_connect_local_all": "Falha ao ligar. Verifique as definições fornecidas.",
-      "no_printers": "Nenhuma impressora não configurada encontrada na conta.",
       "invalid_auth": "Autenticação inválida.",
       "unknown": "Erro inesperado.",
       "verifyCode": "O código de verificação é obrigatório. ",
@@ -72,6 +77,10 @@
     }
   },
   "options": {
+    "abort": {
+      "cloudflare": "Cloudflare bloqueou a tentativa de conexão.",
+      "curl_unavailable": "A biblioteca curl_cffi não está disponível."
+    },
     "error": {
       "cannot_connect": "Falha ao ligar",
       "cannot_connect_local_ip": "Falha ao ligar. Verifique o endereço IP fornecido.",
@@ -566,6 +575,12 @@
     "switch": {
       "manual": {
         "name": "Modo de atualização manual"
+      },
+      "camera": {
+        "name": "Ativar câmera"
+      },
+      "imagecamera": {
+        "name": "Use câmera com sensor de imagem"
       }
     }
   }

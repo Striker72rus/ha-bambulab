@@ -5,18 +5,23 @@
       "event_print_failed": "Αποτυχία εκτύπωσης",
       "event_print_finished": "Η εκτύπωση ολοκληρώθηκε",
       "event_print_started": "Η εκτύπωση ξεκίνησε",
-      "event_printer_error": "Εντοπίστηκε σφάλμα στον εκτυπωτή"
+      "event_print_error": "Σφάλμα εκτύπωσης",
+      "event_print_error_cleared": "Το σφάλμα εκτύπωσης διαγράφηκε",
+      "event_printer_error": "Σφάλμα HMS",
+      "event_printer_error_cleared": "Το σφάλμα HMS διαγράφηκε"
     }
   },
   "config": {
     "abort": {
-      "already_configured": "Η συσκευή είναι ήδη ρυθμισμένη"
+      "already_configured": "Η συσκευή είναι ήδη ρυθμισμένη",
+      "no_printers": "Δεν βρέθηκαν μη ρυθμισμένοι εκτυπωτές στον λογαριασμό.",
+      "cloudflare": "Το Cloudflare έχει μπλοκάρει την προσπάθεια σύνδεσης.",
+      "curl_unavailable": "Η βιβλιοθήκη curl_cffi δεν είναι διαθέσιμη."
     },
     "error": {
       "cannot_connect": "Αποτυχία σύνδεσης. Ελέγξτε τα στοιχεία σύνδεσης.",
       "cannot_connect_local_ip": "Αποτυχία σύνδεσης. Ελέγξτε τη διεύθυνση IP.",
       "cannot_connect_local_all": "Αποτυχία σύνδεσης. Ελέγξτε τις ρυθμίσεις.",
-      "no_printers": "Δεν βρέθηκαν μη ρυθμισμένοι εκτυπωτές στον λογαριασμό.",
       "invalid_auth": "Μη έγκυρη ταυτοποίηση.",
       "unknown": "Απρόσμενο σφάλμα.",
       "verifyCode": "Απαιτείται κωδικός επαλήθευσης. ",
@@ -72,6 +77,10 @@
     }
   },
   "options": {
+    "abort": {
+      "cloudflare": "Το Cloudflare έχει μπλοκάρει την προσπάθεια σύνδεσης.",
+      "curl_unavailable": "Η βιβλιοθήκη curl_cffi δεν είναι διαθέσιμη."
+    },
     "error": {
       "cannot_connect": "Αποτυχία σύνδεσης",
       "cannot_connect_local_ip": "Αποτυχία σύνδεσης. Ελέγξτε τη διεύθυνση IP.",
@@ -566,6 +575,12 @@
     "switch": {
       "manual": {
         "name": "Χειροκίνητη λειτουργία ανανέωσης"
+      },
+      "camera": {
+        "name": "Ενεργοποίηση κάμερας"
+      },
+      "imagecamera": {
+        "name": "Χρησιμοποιήστε κάμερα αισθητήρα εικόνας"
       }
     }
   }
