@@ -8,10 +8,8 @@ A Home Assistant Integration for Bambu Lab printers.
 
 Want to contribute to ha-bambulab? Great! We have a few small asks though!
 
-- Please create your patch PRs against the `main` branch.
-- Please name your commits accordingly, and add some context as to what you have added.
-
-NOTE - we did previously use a separate `develop` branch for staging initial checkins. This is being retired.
+- Please create your patch pull requests against the `main` branch.
+- Please be verbose in your description of your changes in your pull requests.
 
 If you feel this integration was valuable and want to support it in other ways, you can [buy me a coffee](https://Ko-fi.com/adriangarside).
 
@@ -98,13 +96,17 @@ instead of OAuth.
 
 ### Controls
 
-| Lights              | Notes                                            |
-| ------------------- | ------------------------------------------------ |
-| Chamber Light       |                                                  |
-| Pause               |                                                  |
-| Resume              |                                                  |
-| Stop                |                                                  |
-| Manual Refresh Mode | P1/A1 only and only available in local MQTT mode |
+| Lights              | Notes                                                      |
+| ------------------- | ---------------------------------------------------------- |
+| Chamber Light       |                                                            |
+| Pause               |                                                            |
+| Resume              |                                                            |
+| Stop                |                                                            |
+| Manual Refresh Mode | P1/A1 only and only available in local MQTT mode           |
+| Bed temperature     | On P1/A1 this is not available in hybrid connection mode\* |
+| Nozzle temperature  | On P1/A1 this is not available in hybrid connection mode\* |
+\* Hybrid connection mode is when you are connected to the local printer mqtt for a non-Lan Mode printer.
+
 
 ### AMS
 
@@ -168,6 +170,11 @@ instead of OAuth.
 
 This integration implements a handful of device triggers to make some common automation scenarios a little easier.
 See [device triggers](docs/DeviceTrigger.md).
+
+### Actions
+
+* **Send Command**: Sends arbitrary GCODE to the printer. Be careful as it does not check if the printer is running a job
+or not so before invoking this action, you should check the printer state to ensure it is not running a job.
 
 ## Example dashboard
 
