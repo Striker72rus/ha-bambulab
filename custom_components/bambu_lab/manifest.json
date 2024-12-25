@@ -1,6 +1,6 @@
 {
-  "domain": "bambu_lab",
-  "name": "Bambu Lab",
+  "domain": "bambu_lab_fork",
+  "name": "Bambu Lab Fork",
   "codeowners": [
     "@greghesp", "@AdrianGarside"
   ],
