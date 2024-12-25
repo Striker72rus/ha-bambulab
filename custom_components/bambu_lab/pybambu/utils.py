@@ -268,7 +268,7 @@ def change_filament_spool(self, hass, input, custom_filaments, filaments):
             tray_info_idx = key
             LOGGER.debug(f"Found in custom_filaments: {tray_info_idx}")
             break
-        
+
 #    if tray_info_idx == "unknown":
 #        custom_filaments = load_custom_filaments(hass)
 #        for key, value in custom_filaments.items():

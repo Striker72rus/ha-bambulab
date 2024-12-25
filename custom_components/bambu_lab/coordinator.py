@@ -388,5 +388,3 @@ class BambuDataUpdateCoordinator(DataUpdateCoordinator):
             options=options)
         # Force reload of sensors.
         return await self.hass.config_entries.async_reload(self._entry.entry_id)
-
-
