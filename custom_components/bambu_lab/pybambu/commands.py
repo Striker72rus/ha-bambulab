@@ -19,23 +19,50 @@ PUSH_ALL = {"pushing": {"sequence_id": "0", "command": "pushall"}}
 START_PUSH = { "pushing": {"sequence_id": "0", "command": "start"}}
 
 SEND_GCODE_TEMPLATE = {"print": {"sequence_id": "0", "command": "gcode_line", "param": ""}} # param = GCODE_EACH_LINE_SEPARATED_BY_\n
+PRINT_PROJECT_FILE_TEMPLATE = {
+                "print": {
+                    "sequence_id": 0,
+                    "command": "project_file",
+
+                    "param": "", # param = f"Metadata/plate_1.gcode"
+                    "url": "", # url = f"ftp://{file}"
+                    "bed_type": "auto",
+                    "timelapse": False,
+                    "bed_leveling": True,
+                    "flow_cali": True,
+                    "vibration_cali": True,
+                    "layer_inspect": True,
+                    "use_ams": False,
+                    "ams_mapping": [0],
+
+                    "subtask_name": "",
+                    "profile_id": "0",
+                    "project_id": "0",
+                    "subtask_id": "0",
+                    "task_id": "0",
+                }
+            }
 
 # X1 only currently
 GET_ACCESSORIES = {"system": {"sequence_id": "0", "command": "get_accessories", "accessory_type": "none"}}
 
+# A1 only
+PROMPT_SOUND_ENABLE  = {"print" : {"sequence_id": "0", "command": "print_option", "sound_enable": True}}
+PROMPT_SOUND_DISABLE = {"print" : {"sequence_id": "0", "command": "print_option", "sound_enable": False}}
+
 CHANGE_FILAMENT_TEMPLATE = {
-    "print": {
-        "sequence_id": "2070",
-        "command": "ams_filament_setting",
-        "ams_id": 255,  # 255 is external spool, ams id 0-N for an AMS
-        "tray_id": 254,  # 254 is external spool here, 0-3 for an AMS
-        "tray_info_idx": "",  # one of the predefined codes in the slicer. This is mandatory
-        "tray_color": "00000000",
-        "nozzle_temp_min": 190,
-        "nozzle_temp_max": 280,
-        "tray_type": "",
-        "setting_id": "",
-        "reason": "success",
-        "result": "success",
-    }
-}
+     "print": {
+         "sequence_id": "2070",
+         "command": "ams_filament_setting",
+         "ams_id": 255,  # 255 is external spool, ams id 0-N for an AMS
+         "tray_id": 254,  # 254 is external spool here, 0-3 for an AMS
+         "tray_info_idx": "",  # one of the predefined codes in the slicer. This is mandatory
+         "tray_color": "00000000",
+         "nozzle_temp_min": 190,
+         "nozzle_temp_max": 280,
+         "tray_type": "",
+         "setting_id": "",
+         "reason": "success",
+         "result": "success",
+     }
+ }

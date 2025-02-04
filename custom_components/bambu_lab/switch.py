@@ -24,6 +24,13 @@ MANUAL_REFRESH_MODE_SWITCH_DESCRIPTION = SwitchEntityDescription(
     entity_category=EntityCategory.CONFIG,
 )
 
+PROMPT_SOUND_SWITCH_DESCRIPTION = SwitchEntityDescription(
+    key="prompt_sound",
+    icon="mdi:audio",
+    translation_key="prompt_sound",
+    entity_category=EntityCategory.CONFIG,
+)
+
 CAMERA_SWITCH_DESCRIPION = SwitchEntityDescription(
     key="camera",
     icon="mdi:refresh-auto",
@@ -35,6 +42,20 @@ CAMERA_IMAGE_SENSOR_DESCRIPION = SwitchEntityDescription(
     key="imagecamera",
     icon="mdi:refresh-auto",
     translation_key="imagecamera",
+    entity_category=EntityCategory.CONFIG,
+)
+
+FTP_SWITCH_DESCRIPTION = SwitchEntityDescription(
+    key="ftp",
+    icon="mdi:folder-network",
+    translation_key="ftp",
+    entity_category=EntityCategory.CONFIG,
+)
+
+TIMELAPSE_SWITCH_DESCRIPTION = SwitchEntityDescription(
+    key="timelapse",
+    icon="mdi:folder-network",
+    translation_key="timelapse",
     entity_category=EntityCategory.CONFIG,
 )
 
@@ -55,6 +76,14 @@ async def async_setup_entry(
     if coordinator.get_model().supports_feature(Features.CAMERA_IMAGE):
         async_add_entities([BambuLabCameraImageSwitch(coordinator, entry)])
 
+    if coordinator.get_model().supports_feature(Features.PROMPT_SOUND):
+        async_add_entities([BambuLabPromptSoundSwitch(coordinator, entry)])
+
+    if coordinator.get_model().supports_feature(Features.FTP):
+        async_add_entities([BambuLabFtpSwitch(coordinator, entry)])
+
+    if coordinator.get_model().supports_feature(Features.TIMELAPSE):
+        async_add_entities([BambuLabTimelapseSwitch(coordinator, entry)])
 
 class BambuLabSwitch(BambuLabEntity, SwitchEntity):
     """Base BambuLab Switch"""
@@ -168,3 +197,93 @@ class BambuLabCameraImageSwitch(BambuLabSwitch):
         """Disable the camera."""
         self._attr_is_on = False
         await self.coordinator.set_camera_as_image_sensor(self._attr_is_on)
+
+
+class BambuLabFtpSwitch(BambuLabSwitch):
+    """BambuLab FTP Switch"""
+
+    entity_description = FTP_SWITCH_DESCRIPTION
+
+    def __init__(
+            self,
+            coordinator: BambuDataUpdateCoordinator,
+            config_entry: ConfigEntry
+    ) -> None:
+        super().__init__(coordinator, config_entry)
+        self._attr_is_on = self.coordinator.ftp_enabled
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    @property
+    def icon(self) -> str:
+        """Return the icon for the switch."""
+        return "mdi:folder-network" if self.is_on else "mdi:folder-hidden"
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Enable FTP."""
+        self._attr_is_on = True
+        await self.coordinator.set_ftp_enabled(self._attr_is_on)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Disable FTP."""
+        self._attr_is_on = False
+        await self.coordinator.set_ftp_enabled(self._attr_is_on)
+
+
+class BambuLabTimelapseSwitch(BambuLabSwitch):
+    """BambuLab FTP Switch"""
+
+    entity_description = TIMELAPSE_SWITCH_DESCRIPTION
+
+    def __init__(
+            self,
+            coordinator: BambuDataUpdateCoordinator,
+            config_entry: ConfigEntry
+    ) -> None:
+        super().__init__(coordinator, config_entry)
+        self._attr_is_on = self.coordinator.timelapse_enabled
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    @property
+    def icon(self) -> str:
+        """Return the icon for the switch."""
+        return "mdi:folder-network" if self.is_on else "mdi:folder-hidden"
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Enable Timelapse Download."""
+        self._attr_is_on = True
+        await self.coordinator.set_timelapse_enabled(self._attr_is_on)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Disable Timelapse Download."""
+        self._attr_is_on = False
+        await self.coordinator.set_timelapse_enabled(self._attr_is_on)
+
+
+class BambuLabPromptSoundSwitch(BambuLabSwitch):
+    """BambuLab Refresh data Switch"""
+
+    entity_description = PROMPT_SOUND_SWITCH_DESCRIPTION
+
+    @property
+    def icon(self) -> str:
+        """Return the icon for the switch."""
+        return "mdi:volume-on" if self.is_on else "mdi:volume-off"
+
+    @property
+    def is_on(self) -> bool:
+        """Return True if entity is on."""
+        return self.coordinator.get_model().home_flag.xcam_prompt_sound
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Enable manual refresh mode."""
+        self.coordinator.get_model().info.set_prompt_sound(True)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Disable manual refresh mode."""
+        self.coordinator.get_model().info.set_prompt_sound(False)

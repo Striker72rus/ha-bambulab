@@ -1,4 +1,6 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
+[![downloads](https://shields.io/github/downloads/greghesp/ha-bambulab/latest/total?style=for-the-badge)](https://github.com/greghesp/ha-bambulab)
+
 
 # Bambu Lab Fork
 
@@ -60,21 +62,21 @@ instead of OAuth.
 
 ### Print Data and Progress
 
-| Sensor            | Notes                                           |
-| ----------------- | ----------------------------------------------- |
-| Current Layer     |                                                 |
-| Total Layer Count |                                                 |
-| Print Progress    |                                                 |
-| Print Weight      | With Bambu credentials                          |
-| Print Length      | With Bambu credentials                          |
-| Print Bed Type    | Bed choice in the print job                     |
-| Start Time        | Simulated. More accurate with Bambu credentials |
-| Remaining Time    |                                                 |
-| End Time          |                                                 |
-| Current Stage     |                                                 |
-| Print Status      |                                                 |
-| Cover Image       | With Bambu credentials                          |
-| Total Usage Hours | \* See Note                                     |
+| Sensor            | Notes                                              |
+| ----------------- | -------------------------------------------------- |
+| Current Layer     |                                                    |
+| Total Layer Count |                                                    |
+| Print Progress    |                                                    |
+| Print Weight      | With Bambu credentials or when loaded from printer |
+| Print Length      | With Bambu credentials or when loaded from printer |
+| Print Bed Type    | Bed choice in the print job                        |
+| Start Time        | Simulated - more accurate with Bambu credentials   |
+| Remaining Time    |                                                    |
+| End Time          |                                                    |
+| Current Stage     |                                                    |
+| Print Status      |                                                    |
+| Cover Image       | With Bambu credentials or when loaded from printer |
+| Total Usage Hours | \* See Note                                        |
 
 \* This is a running estimate that will be imprecise. Starting hours can be read of the printer screen and provided during initial printer setup or updated later via the configuration flow. And the integration must be running when a print completes to update the value. For non-X1 printers, if the integration is restarted mid-print and Bambu cloud connection isn't setup, the usage hours will not be added as print start time won't be known. It's expected that you'll need to adjust this value occasionally to fix drift from the value the printer itself calculates.
 
@@ -155,6 +157,7 @@ instead of OAuth.
 | Firmware Update Available |                                                                |
 | Force Refresh             |                                                                |
 | HMS Errors                | Attributes contain the error codes, descriptions and wiki URLs |
+| IP Address                |                                                                |
 | MQTT connection mode      | Bambu Cloud or Local                                           |
 | Online                    |                                                                |
 | Wifi Signal               |                                                                |
@@ -175,6 +178,7 @@ See [device triggers](docs/DeviceTrigger.md).
 
 * **Send Command**: Sends arbitrary GCODE to the printer. Be careful as it does not check if the printer is running a job
 or not so before invoking this action, you should check the printer state to ensure it is not running a job.
+* **Print 3MF project file**: Prints 3MF file stored on SD card. 3MF file must be stored on SD card root and it must contain gcode (e.g., "Export sliced file" from slicer)
 
 ## Example dashboard
 

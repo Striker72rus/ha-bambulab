@@ -29,6 +29,9 @@ class Features(Enum):
     MANUAL_MODE = 17,
     AMS_FILAMENT_REMAINING = 18,
     SET_TEMPERATURE = 19,
+    PROMPT_SOUND = 20,
+    FTP = 21,
+    TIMELAPSE = 22
 
 
 class FansEnum(Enum):
