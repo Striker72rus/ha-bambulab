@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import ftplib
+import functools
 import json
 import math
 import os
@@ -109,9 +110,7 @@ class ChamberImageThread(threading.Thread):
         for i in range(0, 32 - len(access_code)):
             auth_data += struct.pack("<x")
 
-        ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-        ctx.check_hostname = False
-        ctx.verify_mode = ssl.CERT_NONE
+        ctx = create_local_ssl_context()
 
         jpeg_start = bytearray([0xff, 0xd8, 0xff, 0xe0])
         jpeg_end = bytearray([0xff, 0xd9])
@@ -337,12 +336,12 @@ class BambuClient:
         self._auth_token = config.get('auth_token', '')
         self._device_type = config.get('device_type', 'unknown').upper()
         self._local_mqtt = config.get('local_mqtt', False)
-        self._manual_refresh_mode = config.get('manual_refresh_mode', False)
+        self._manual_refresh_mode = False #config.get('manual_refresh_mode', False)
         self._serial = config.get('serial', '')
         self._usage_hours = config.get('usage_hours', 0)
         self._username = config.get('username', '')
         self._enable_camera = config.get('enable_camera', True)
-        self._enable_ftp = config.get('enable_ftp', False)
+        self._enable_ftp = config.get('enable_ftp', self._local_mqtt)
         self._enable_timelapse = config.get('enable_timelapse', False)
 
         self._connected = False
@@ -386,7 +385,7 @@ class BambuClient:
             self.disconnect()
         else:
             # Reconnect normally
-            self.connect(self._callback)
+            await self.connect(self._callback)
 
     @property
     def camera_enabled(self):
@@ -418,19 +417,10 @@ class BambuClient:
         self._enable_timelapse = enable
 
     def setup_tls(self):
-        # Some people got this error with this change so disabled for now:
-        # Exception. Type: <class 'ssl.SSLCertVerificationError'> Args: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: CA cert does not include key usage extension (_ssl.c:1020)
-        #
-        # script_path = os.path.abspath(__file__)
-        # directory_path = os.path.dirname(script_path)
-        # certfile = directory_path + "/bambu.cert"
-        # context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
-        # context.verify_mode = ssl.CERT_REQUIRED
-        # context.load_verify_locations(cafile=certfile)
-        # context.check_hostname = not self._local_mqtt
-        # self.client.tls_set_context(context)
-        self.client.tls_set(tls_version=ssl.PROTOCOL_TLS, cert_reqs=ssl.CERT_NONE)
-        self.client.tls_insecure_set(True)
+        if self._local_mqtt:
+            self.client.tls_set_context(create_local_ssl_context())
+        else:
+            self.client.tls_set()
 
     async def connect(self, callback):
         """Connect to the MQTT Broker"""
@@ -616,7 +606,7 @@ class BambuClient:
         """Force refresh data"""
 
         if self._manual_refresh_mode:
-            self.connect(self._callback)
+            await self.connect(self._callback)
         else:
             LOGGER.debug("Force Refresh: Getting Version Info")
             self._refreshed = True
@@ -638,7 +628,7 @@ class BambuClient:
 
 
     def ftp_connection(self) -> ImplicitFTP_TLS:
-        ftp = ImplicitFTP_TLS()
+        ftp = ImplicitFTP_TLS(context=create_local_ssl_context())
         ftp.connect(host=self._device.info.ip_address, port=990, timeout=5)
         ftp.login(user='bblp', passwd=self._access_code)
         ftp.prot_p()
@@ -713,3 +703,19 @@ class BambuClient:
             _exc_info: Exec type.
         """
         self.disconnect()
+
+@functools.lru_cache(maxsize=1)
+def create_local_ssl_context():
+    """
+    This context validates the certificate for TLS connections to local printers.
+    """
+    script_path = os.path.abspath(__file__)
+    directory_path = os.path.dirname(script_path)
+    certfile = directory_path + "/bambu.cert"
+    context = ssl.create_default_context(cafile=certfile)
+    # Ignore "CA cert does not include key usage extension" error since python 3.13
+    # See note in https://docs.python.org/3/library/ssl.html#ssl.create_default_context
+    context.verify_flags &= ~ssl.VERIFY_X509_STRICT
+    # Workaround because some users get this error despite SNI: "certificate verify failed: IP address mismatch"
+    context.check_hostname = False
+    return context
