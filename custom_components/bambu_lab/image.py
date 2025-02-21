@@ -86,7 +86,10 @@ class CoverImage(ImageEntity, BambuLabEntity):
         """The time when the image was last updated."""
         return self.coordinator.get_model().cover_image.get_last_update_time()
 
-
+    @property
+    def available(self) -> bool:
+        return self.coordinator.get_model().cover_image.get_last_update_time() != None
+    
 class ChamberImage(ImageEntity, BambuLabEntity):
     """Representation of an image entity."""
     def __init__(
@@ -144,3 +147,7 @@ class PickImage(ImageEntity, BambuLabEntity):
     def image_last_updated(self) -> datetime | None:
         """The time when the image was last updated."""
         return self.coordinator.get_model().pick_image.get_last_update_time()
+
+    @property
+    def available(self) -> bool:
+        return self.image() is not None

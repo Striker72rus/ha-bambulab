@@ -19,6 +19,19 @@ PUSH_ALL = {"pushing": {"sequence_id": "0", "command": "pushall"}}
 START_PUSH = { "pushing": {"sequence_id": "0", "command": "start"}}
 
 SEND_GCODE_TEMPLATE = {"print": {"sequence_id": "0", "command": "gcode_line", "param": ""}} # param = GCODE_EACH_LINE_SEPARATED_BY_\n
+UPGRADE_CONFIRM_TEMPLATE = {
+                "upgrade": {
+                    "command": "upgrade_confirm",
+                    "module": "ota",
+                    "reason": "",
+                    "result": "success",
+                    "sequence_id": "0",
+                    "src_id": 2,
+                    "upgrade_type": 4,
+                    "url": "https://public-cdn.bblmw.com/upgrade/device/{model}/{version}/product/{hash}/{stamp}.json.sig",
+                    "version": "{version}",
+                }
+            }
 PRINT_PROJECT_FILE_TEMPLATE = {
                 "print": {
                     "sequence_id": 0,
@@ -44,7 +57,12 @@ PRINT_PROJECT_FILE_TEMPLATE = {
             }
 
 SKIP_OBJECTS_TEMPLATE = {"print": {"sequence_id": "0", "command": "skip_objects", "obj_list": []}}
-  
+SWITCH_AMS_TEMPLATE = {"print": {"command": "ams_change_filament", "sequence_id": "0", "target": 255, "curr_temp": 0, "tar_temp": 0}}
+
+MOVE_AXIS_GCODE = "M211 S\nM211 X1 Y1 Z1\nM1002 push_ref_mode\nG91 \nG1 {axis}{distance}.0 F{speed}\nM1002 pop_ref_mode\nM211 R\n"
+HOME_GCODE = "G28\n"
+EXTRUDER_GCODE = "M83 \nG0 E{distance}.0 F900\n"
+
 # X1 only currently
 GET_ACCESSORIES = {"system": {"sequence_id": "0", "command": "get_accessories", "accessory_type": "none"}}
 

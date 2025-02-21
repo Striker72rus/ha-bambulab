@@ -17,6 +17,11 @@ from homeassistant.const import (
     UnitOfTime
 )
 
+from homeassistant.components.update import (
+    UpdateDeviceClass,
+    UpdateEntityDescription
+)
+
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntityDescription,
@@ -35,6 +40,14 @@ from .pybambu.const import PRINT_TYPE_OPTIONS, SPEED_PROFILE, Features, FansEnum
 def fan_to_percent(speed):
     percentage = (int(speed) / 15) * 100
     return math.ceil(percentage / 10) * 10
+
+@dataclass
+class BambuLabUpdateEntityDescription(UpdateEntityDescription):
+    """Update entity description for Bambu Lab."""
+    device_class: UpdateDeviceClass = UpdateDeviceClass.FIRMWARE
+    entity_category: EntityCategory = EntityCategory.DIAGNOSTIC
+    latest_ver_fn: Callable[..., str] = lambda _: None
+    installed_ver_fn: Callable[..., str] = lambda _: None
 
 
 @dataclass
@@ -102,7 +115,8 @@ PRINTER_BINARY_SENSORS: tuple[BambuLabBinarySensorEntityDescription, ...] = (
         translation_key="firmware_update",
         device_class=BinarySensorDeviceClass.UPDATE,
         entity_category=EntityCategory.DIAGNOSTIC,
-        is_on_fn=lambda self: self.coordinator.get_model().info.new_version_state == 1
+        is_on_fn=lambda self: self.coordinator.get_model().info.new_version_state == 1,
+        exists_fn=lambda coordinator: not coordinator.get_option_enabled(Options.FIRMWAREUPDATE),
     ),
     BambuLabBinarySensorEntityDescription(
         key="door_open",
@@ -365,7 +379,7 @@ PRINTER_SENSORS: tuple[BambuLabSensorEntityDescription, ...] = (
         translation_key="print_bed_type",
         icon="mdi:file",
         value_fn=lambda self: self.coordinator.get_model().print_job.print_bed_type,
-        exists_fn=lambda coordinator: coordinator.get_model().info.has_bambu_cloud_connection
+        exists_fn=lambda coordinator: coordinator.get_model().info.has_bambu_cloud_connection or coordinator.get_option_enabled(Options.FTP)
     ),
     BambuLabSensorEntityDescription(
         key="print_weight",
