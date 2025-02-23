@@ -316,7 +316,7 @@ class BambuDataUpdateCoordinator(DataUpdateCoordinator):
             # midway temperature of the filament set in the ext spool
             if data.get('temperature') is None:
                 ams_tray = self.get_model().ams.data[ams_idx].tray[tray]
-                temperature = (int(ams_tray.nozzle_temp_min) + int(ams_tray.nozzle_temp_max)) / 2
+                temperature = (int(ams_tray.nozzle_temp_min) + int(ams_tray.nozzle_temp_max)) // 2
         else:
             LOGGER.error(f"An AMS tray or external spool is required")
             return False
@@ -471,7 +471,7 @@ class BambuDataUpdateCoordinator(DataUpdateCoordinator):
         for device in dev_reg.devices.values():
             if config_entry_id in device.config_entries:
                 # This device is associated with this printer.
-                if device.model == 'AMS':
+                if device.model == 'AMS' or device.model == 'AMS Lite':
                     # And it's an AMS device
                     ams_serial = list(device.identifiers)[0][1]
                     if ams_serial not in existing_ams_devices:
@@ -529,14 +529,15 @@ class BambuDataUpdateCoordinator(DataUpdateCoordinator):
     def get_ams_device(self, index):
         printer_serial = self.config_entry.data["serial"]
         device_type = self.config_entry.data["device_type"]
-        device_name=f"{device_type}_{printer_serial}_AMS_{index+1}"
+        device_name = f"{device_type}_{printer_serial}_AMS_{index+1}"
         ams_serial = self.get_model().ams.data[index].serial
+        model = self.get_model().ams.model
 
         return DeviceInfo(
             identifiers={(DOMAIN, ams_serial)},
             via_device=(DOMAIN, printer_serial),
             name=device_name,
-            model="AMS",
+            model=model,
             manufacturer=BRAND,
             hw_version=self.get_model().ams.data[index].hw_version,
             sw_version=self.get_model().ams.data[index].sw_version
