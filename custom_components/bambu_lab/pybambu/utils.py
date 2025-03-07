@@ -102,6 +102,7 @@ def get_current_stage(id) -> str:
 
 def get_HMS_error_text(code: str, language: str):
     """Return the human-readable description for an HMS error"""
+    code = code.replace("_", "")
     error = HMS_ERRORS.get(code, 'unknown')
     if '' == error:
         return 'unknown'
@@ -110,6 +111,7 @@ def get_HMS_error_text(code: str, language: str):
 
 def get_print_error_text(code: str, language: str):
     """Return the human-readable description for a print error"""
+    code = code.replace("_", "")
     error = PRINT_ERROR_ERRORS.get(code, 'unknown')
     if '' == error:
         return 'unknown'
