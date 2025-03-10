@@ -1142,16 +1142,16 @@ class PrintJob:
         # Open the FTP connection
         ftp = self._client.ftp_connection()
 
-        for i in range(1,7):
+        for i in range(1,13):
             model_file = self._attempt_ftp_download(ftp)
             if model_file is not None:
                 break
 
             if self._client._device.info.device_type == "X1" or self._client._device.info.device_type == "X1C" or self._client._device.info.device_type == "X1E":
                 # The X1 has a weird behavior where the downloaded file doesn't exist for several seconds into the RUNNING phase and even
-                # then it is still being downloaded in place so we might try to grab it mid-download and get a corrupt file. Try 7 times
-                # 5 seconds apart
-                if i != 6:
+                # then it is still being downloaded in place so we might try to grab it mid-download and get a corrupt file. Try 13 times
+                # 5 seconds apart over 60s.
+                if i != 12:
                     LOGGER.debug(f"Sleeping 5s for X1 retry")
                     time.sleep(5)
                     LOGGER.debug(f"Try #{i+1} for X1")
@@ -1843,7 +1843,7 @@ class AMSTray:
     color: str
     nozzle_temp_min: int
     nozzle_temp_max: int
-    remain: int
+    _remain: int
     k: float
     tag_uid: str
     tray_uuid: str
@@ -1859,11 +1859,20 @@ class AMSTray:
         self.color = "00000000"  # RRGGBBAA
         self.nozzle_temp_min = 0
         self.nozzle_temp_max = 0
-        self.remain = 0
+        self._remain = -1
         self.k = 0
         self.tag_uid = ""
         self.tray_uuid = ""
         self.tray_weight = 0
+
+    @property
+    def remain(self) -> int:
+        return self._remain
+
+    @property
+    def remain_enabled(self) -> bool:
+        return self._client._device.supports_feature(Features.AMS_FILAMENT_REMAINING) and self._client._device.home_flag.ams_calibrate_remaining
+
     def print_update(self, data) -> bool:
         old_data = f"{self.__dict__}"
 
@@ -1877,7 +1886,7 @@ class AMSTray:
             self.color = "00000000"  # RRGGBBAA
             self.nozzle_temp_min = 0
             self.nozzle_temp_max = 0
-            self.remain = 0
+            self._remain = -1
             self.tag_uid = ""
             self.tray_uuid = ""
             self.k = 0
@@ -1891,11 +1900,14 @@ class AMSTray:
             self.color = data.get('tray_color', self.color)
             self.nozzle_temp_min = data.get('nozzle_temp_min', self.nozzle_temp_min)
             self.nozzle_temp_max = data.get('nozzle_temp_max', self.nozzle_temp_max)
-            self.remain = data.get('remain', self.remain)
+            self._remain = data.get('remain', self._remain)
             self.tag_uid = data.get('tag_uid', self.tag_uid)
             self.tray_uuid = data.get('tray_uuid', self.tray_uuid)
             self.k = data.get('k', self.k)
             self.tray_weight = data.get('tray_weight', self.tray_weight)
+            if self.name == "unknown":
+                # Fallback to the type if the name is unknown
+                self.name = self.type
         return (old_data != f"{self.__dict__}")
 
 
@@ -1905,7 +1917,14 @@ class ExternalSpool(AMSTray):
 
     def __init__(self, client):
         super().__init__(client)
-        self._client = client
+
+    @property
+    def remain(self) -> int:
+        return -1
+
+    @property
+    def remain_enabled(self) -> bool:
+        return False
 
     def print_update(self, data) -> bool:
 
@@ -2323,6 +2342,35 @@ class HomeFlag:
         return (self._value & Home_Flag_Values.INSTALLED_PLUS) !=  0
 
 
+@dataclass
+class FilamentInfo:
+    name: str;
+    filament_vendor: str;
+    filament_type: str;
+    filament_density: float;
+    nozzle_temperature: int;
+    nozzle_temperature_range_high: int;
+    nozzle_temperature_range_low: int;
+
+# Example custom filament;
+# {
+#   "setting_id": "PFUS9be9e18f81828a",
+#   "version": "1.9.0.2",
+#   "update_time": "2024-03-30 11:54:22",
+#   "name": "ELEGOO PLA Black @Bambu Lab X1 Carbon 0.6 nozzle",
+#   "nickname": null,
+#   "base_id": null,
+#   "filament_vendor": "ELEGOO",
+#   "filament_id": "P9816594",
+#   "filament_type": "PLA",
+#   "filament_is_support": false,
+#   "nozzle_temperature": [
+#     190,
+#     240
+#   ],
+#   "nozzle_hrc": 3
+# },
+      
 class SlicerSettings:
     custom_filaments: dict = field(default_factory=dict)
 
@@ -2330,15 +2378,28 @@ class SlicerSettings:
         self._client = client
         self.custom_filaments = {}
 
+    @property
+    def filaments(self):
+        return self.custom_filaments
+
     def _load_custom_filaments(self, slicer_settings: dict):
         if 'private' in slicer_settings["filament"]:
             for filament in slicer_settings['filament']['private']:
-                name = filament["name"]
-                if " @" in name:
-                    name = name[:name.index(" @")]
                 if filament.get("filament_id", "") != "":
-                    self.custom_filaments[filament["filament_id"]] = name
-            LOGGER.debug("Got custom filaments: %s", self.custom_filaments)
+                    name = filament["name"]
+                    if " @" in name:
+                        name = name[:name.index(" @")]
+                    id = filament["filament_id"]
+                    self.custom_filaments[id] = FilamentInfo(
+                        name=name,
+                        filament_vendor=filament["filament_vendor"],
+                        filament_type=filament["filament_type"],
+                        filament_density=0,
+                        nozzle_temperature=0,
+                        nozzle_temperature_range_high=filament["nozzle_temperature"][1],
+                        nozzle_temperature_range_low=filament["nozzle_temperature"][0]
+                    )
+            LOGGER.debug(f"Got {len(self.custom_filaments)} custom filaments.")
 
     def update(self):
         self.custom_filaments = {}

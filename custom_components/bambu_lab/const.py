@@ -1,8 +1,11 @@
+import json
 import logging
+
 from datetime import timedelta
 from enum import (
     IntEnum,
 )
+from pathlib import Path
 
 from homeassistant.const import Platform
 
@@ -34,7 +37,7 @@ BAMBU_LAB_CARDS = [
     {
         'name': 'Bambu Lab Cards',
         'filename': 'ha-bambulab-cards.js',
-        'version': '0.3.25'
+        'version': '0.3.28'
     }
 ]
 
@@ -56,3 +59,9 @@ OPTION_NAME = {
     Options.MANUALREFRESH:  "manual_refresh_mode",
     Options.DOWNLOAD_GCODE_FILE: "enable_download_gcode_file"
 }
+
+def load_dict(filename: str) -> dict:
+    with open(filename) as f:
+        return json.load(f);
+
+FILAMENT_DATA = load_dict(Path(__file__).with_name('filaments_detail.json'))
