@@ -319,7 +319,8 @@ def upgrade_template(url: str) -> dict:
     template["upgrade"]["version"] = version
     return template
 
-def change_filament_spool(self, hass, input, custom_filaments, filaments):
+def change_filament_spool(self, hass, input, custom_filaments: dict, filaments):
+    from custom_components.bambu_lab.pybambu.models import FilamentInfo
     command = CHANGE_FILAMENT_TEMPLATE
     command["print"]["ams_id"] = input.data.get("ams")
     command["print"]["tray_id"] = input.data.get("tray")
@@ -329,10 +330,16 @@ def change_filament_spool(self, hass, input, custom_filaments, filaments):
     LOGGER.debug(f"tray_type: {tray_type}")
     tray_info_idx = "unknown"
     for key, value in custom_filaments.items():
-        if tray_type in value:
-            tray_info_idx = key
-            LOGGER.debug(f"Found in custom_filaments: {tray_info_idx}")
-            break
+        LOGGER.debug(f"key: {key}, value type: {type(value)}")
+        if not isinstance(value, FilamentInfo):
+            LOGGER.error(f"Unexpected value type: {type(value)} at key {key}")
+            continue
+        LOGGER.debug(f"value filament_type: {value.filament_type}")
+        if isinstance(tray_type, str) and isinstance(value.filament_type, str):
+            if tray_type in value.filament_type:
+                tray_info_idx = key
+                LOGGER.debug(f"Found in custom_filaments: {tray_info_idx}")
+                break
 
 #    if tray_info_idx == "unknown":
 #        custom_filaments = load_custom_filaments(hass)
