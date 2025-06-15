@@ -206,6 +206,9 @@
       },
       "mqtt_encryption": {
         "name": "เฟิร์มแวร์การเข้ารหัส MQTT"
+      },
+      "active_ams": {
+        "name": "คล่องแคล่ว"
       }
     },
     "button": {
@@ -451,9 +454,6 @@
       },
       "active_tray": {
         "name": "ถาดที่ใช้งานอยู่"
-      },
-      "active_tray_index": {
-        "name": "ดัชนีถาดที่ใช้งานอยู่"
       },
       "nozzle_diameter": {
         "name": "ขนาดหัวฉีด"

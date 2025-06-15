@@ -206,6 +206,9 @@
       },
       "mqtt_encryption": {
         "name": "MQTT Encryption Firmware"
+      },
+      "active_ams": {
+        "name": "Aktiv"
       }
     },
     "button": {
@@ -445,9 +448,6 @@
       },
       "active_tray": {
         "name": "Aktiv bakke"
-      },
-      "active_tray_index": {
-        "name": "Indeks for aktiv bakke"
       },
       "nozzle_diameter": {
         "name": "Dyse størrelse"

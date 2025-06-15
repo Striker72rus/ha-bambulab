@@ -206,6 +206,9 @@
       },
       "mqtt_encryption": {
         "name": "Firmware κρυπτογράφησης MQTT"
+      },
+      "active_ams": {
+        "name": "Ενεργός"
       }
     },
     "button": {
@@ -445,9 +448,6 @@
       },
       "active_tray": {
         "name": "Τρέχον Νήμα"
-      },
-      "active_tray_index": {
-        "name": "Ενεργή θέση AMS"
       },
       "nozzle_diameter": {
         "name": "Μέγεθος ακροφυσίου"

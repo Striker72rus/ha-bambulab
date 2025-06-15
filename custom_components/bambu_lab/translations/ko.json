@@ -206,6 +206,9 @@
       },
       "mqtt_encryption": {
         "name": "MQTT 암호화 펌웨어"
+      },
+      "active_ams": {
+        "name": "활동적인"
       }
     },
     "button": {
@@ -445,9 +448,6 @@
       },
       "active_tray": {
         "name": "활성 트레이"
-      },
-      "active_tray_index": {
-        "name": "활성 트레이 인덱스"
       },
       "nozzle_diameter": {
         "name": "노즐 직경"

@@ -206,6 +206,9 @@
       },
       "mqtt_encryption": {
         "name": "Firmware di crittografia MQTT"
+      },
+      "active_ams": {
+        "name": "Attivo"
       }
     },
     "button": {
@@ -445,9 +448,6 @@
       },
       "active_tray": {
         "name": "Piatto Attivo"
-      },
-      "active_tray_index": {
-        "name": "Active tray index"
       },
       "nozzle_diameter": {
         "name": "Dimensione Ugello"

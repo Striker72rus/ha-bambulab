@@ -206,6 +206,9 @@
       },
       "mqtt_encryption": {
         "name": "Firmware de criptografia MQTT"
+      },
+      "active_ams": {
+        "name": "Ativo"
       }
     },
     "button": {
@@ -445,9 +448,6 @@
       },
       "active_tray": {
         "name": "Bandeja ativa"
-      },
-      "active_tray_index": {
-        "name": "Índice de bandeja ativa"
       },
       "nozzle_diameter": {
         "name": "Diâmetro do bico"
