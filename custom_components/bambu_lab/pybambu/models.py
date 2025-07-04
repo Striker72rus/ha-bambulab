@@ -1312,14 +1312,17 @@ class PrintJob:
             if model_file is not None:
                 break
 
-            if self._client._device.info.device_type == Printers.X1 or self._client._device.info.device_type == Printers.X1C or self._client._device.info.device_type == Printers.X1E:
+            if (self._client._device.info.device_type == Printers.X1 or 
+                self._client._device.info.device_type == Printers.X1C or
+                self._client._device.info.device_type == Printers.X1E or
+                self._client._device.info.device_type == Printers.H2D):
                 # The X1 has a weird behavior where the downloaded file doesn't exist for several seconds into the RUNNING phase and even
                 # then it is still being downloaded in place so we might try to grab it mid-download and get a corrupt file. Try 13 times
                 # 5 seconds apart over 60s.
                 if i != 12:
-                    LOGGER.debug(f"Sleeping 5s for X1 retry")
+                    LOGGER.debug(f"Sleeping 5s for X1/H2D retry")
                     time.sleep(5)
-                    LOGGER.debug(f"Try #{i+1} for X1")
+                    LOGGER.debug(f"Try #{i+1} for X1/H2D")
             else:
                 break
 
@@ -2796,11 +2799,9 @@ class Extruder:
         # Handle ext_tool update
         old_data = f"{self.__dict__}"
 
-        extruder_data = data.get("device", {}).get("extruder", {}).get("info")
-        if extruder_data is not None:
-            for entry in extruder_data:
-                state = data["device"]["extruder"]["state"]
-                self._active_nozzle_index = (state >> 4) & 0xF
+        extruder_state = data.get("device", {}).get("extruder", {}).get("state")
+        if extruder_state is not None:
+            self._active_nozzle_index = (extruder_state >> 4) & 0xF
                         
         return (old_data != f"{self.__dict__}")
 
