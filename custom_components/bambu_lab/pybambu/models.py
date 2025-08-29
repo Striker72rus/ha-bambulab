@@ -3022,6 +3022,7 @@ class SlicerSettings:
     def __init__(self, client):
         self._client = client
         self.custom_filaments = {}
+        self._auth_failures = 0
 
     @property
     def filaments(self):
@@ -3054,8 +3055,12 @@ class SlicerSettings:
             LOGGER.debug("Loading slicer settings")
             slicer_settings = self._client.bambu_cloud.get_slicer_settings()
             if slicer_settings is None:
-                self._client.callback("event_printer_bambu_authentication_failed")
+                self._auth_failures += 1
+                if self._auth_failures >= 3:
+                    self._client.callback("event_printer_bambu_authentication_failed")
+                    self._auth_failures = 0
             else:
+                self._auth_failures = 0
                 self._load_custom_filaments(slicer_settings)
 
 class ExtruderTool:
