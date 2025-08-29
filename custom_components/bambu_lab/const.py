@@ -37,7 +37,7 @@ BAMBU_LAB_CARDS = [
     {
         'name': 'Bambu Lab Cards',
         'filename': 'ha-bambulab-cards.js',
-        'version': '0.6.1'
+        'version': '0.6.4'
     }
 ]
 
@@ -45,15 +45,13 @@ class Options(IntEnum):
     CAMERA = 1,
     IMAGECAMERA = 2,
     FTP = 3,
-    FIRMWAREUPDATE = 6,
-    FILE_CACHE = 8
+    FIRMWAREUPDATE = 6
 
 OPTION_NAME = {
     Options.CAMERA:         "enable_camera",
     Options.IMAGECAMERA:    "camera_as_image_sensor",
     Options.FIRMWAREUPDATE: "enable_firmware_update",
     Options.FTP:            "enable_ftp",
-    Options.FILE_CACHE:     "enable_file_cache"
 }
 
 def load_dict(filename: str) -> dict:

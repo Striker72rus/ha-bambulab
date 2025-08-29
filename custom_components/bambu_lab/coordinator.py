@@ -489,7 +489,7 @@ class BambuDataUpdateCoordinator(DataUpdateCoordinator):
             tray = 254
             # Unless a target temperature override is set, try and find the
             # midway temperature of the filament set in the ext spool
-            ext_spool = self.get_model().external_spool
+            ext_spool = self.get_model().external_spool[0]
             if data.get('temperature') is None and not ext_spool.empty:
                 temperature = (int(ext_spool.nozzle_temp_min) + int(ext_spool.nozzle_temp_max)) / 2
         elif not self.get_model().supports_feature(Features.AMS):
@@ -782,6 +782,25 @@ class BambuDataUpdateCoordinator(DataUpdateCoordinator):
             # Force reload of sensors.
             return await self.hass.config_entries.async_reload(self._entry.entry_id)
 
+    def get_option_value(self, option: Options) -> int:
+        options = dict(self.config_entry.options)
+        default = 0
+        return options.get(OPTION_NAME[option], default)
+        
+    async def set_option_value(self, option: Options, value: int):
+        LOGGER.debug(f"Setting {OPTION_NAME[option]} to {value}")
+        options = dict(self.config_entry.options)
+                
+        options[OPTION_NAME[option]] = value
+        self._hass.config_entries.async_update_entry(
+            entry=self.config_entry,
+            title=self.get_model().info.serial,
+            data=self.config_entry.data,
+            options=options)
+
+        # Force reload of integration to effect cache update.
+        return await self.hass.config_entries.async_reload(self._entry.entry_id)
+
     def _report_authentication_issue(self):
         # issue_id's are permanent - once ignore they will never show again so we need a unique id 
         # per occurrence per integration instance. That does mean we'll fire a new issue every single
@@ -804,9 +823,6 @@ class BambuDataUpdateCoordinator(DataUpdateCoordinator):
 
     def get_file_cache_directory(self) -> Optional[str]:
         """Get the file cache directory for this printer."""
-        if not self.get_option_enabled(Options.FILE_CACHE):
-            return None
-        
         serial = self.get_model().info.serial
         return f"/config/www/media/ha-bambulab/{serial}"
     
