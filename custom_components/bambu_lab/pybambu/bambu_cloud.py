@@ -6,6 +6,7 @@ from enum import (
 import base64
 import json
 import requests
+import time
 
 cloudscraper_available = False
 try:
@@ -474,11 +475,20 @@ class BambuCloud:
 
     def get_slicer_settings(self) -> dict:
         LOGGER.debug("Getting slicer settings from Bambu Cloud")
-        try:
-            response = self._get(BambuUrl.SLICER_SETTINGS)
-        except:
-            return None
-        return response.json()
+        for attempt in range(3):
+            try:
+                response = self._get(BambuUrl.SLICER_SETTINGS)
+                return response.json()
+            except Exception as err:
+                LOGGER.debug(
+                    "Attempt %s to get slicer settings failed: %s",
+                    attempt + 1,
+                    err,
+                )
+                if attempt < 2:
+                    time.sleep(1)
+        LOGGER.warning("Failed to get slicer settings after 3 attempts")
+        return None
     
     # The task list is of the following form with a 'hits' array with typical 20 entries.
     #
