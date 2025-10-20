@@ -24,13 +24,6 @@ jobs:
         run: pip install -r requirements.txt
         working-directory: "${{ github.workspace }}/scripts"
 
-      - name: 🧵 Run Python Scripts
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          python '${{ github.workspace }}/scripts/fetch_filaments.py'
-          python '${{ github.workspace }}/scripts/update_const.py'
-
       - name: 📝 Update manifest version
         run: |
           VERSION="${{ github.event.release.tag_name }}"
@@ -44,7 +37,7 @@ jobs:
           zip bambu_lab.zip -r ./
 
       - name: ☁️ Upload zip to release
-        uses: softprops/action-gh-release@v2.3.4
+        uses: softprops/action-gh-release@v2.4.1
         if: ${{ github.event_name == 'release' }}
         with:
           files: "${{ github.workspace }}/custom_components/bambu_lab/bambu_lab.zip"
