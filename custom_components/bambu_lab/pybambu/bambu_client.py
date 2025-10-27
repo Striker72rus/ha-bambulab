@@ -292,7 +292,7 @@ class MqttThread(threading.Thread):
             except Exception:
                 pass
 
-        LOGGER.info("MQTT listener thread exited.")
+        LOGGER.debug("MQTT listener thread exited.")
 
 class ImplicitFTP_TLS(ftplib.FTP_TLS):
     """
@@ -367,8 +367,8 @@ class BambuClient:
         self._device_type = config.get('device_type', 'unknown').upper()
         self._local_mqtt = config.get('local_mqtt', False)
         self._serial = config.get('serial', '')
-        self._enable_camera = config.get('enable_camera', True)
-        self._enable_ftp = config.get('enable_ftp', True)
+        self._enable_camera = config.get('enable_camera', True) and (self.host != "")
+        self._enable_ftp = (self.host != "")
         if self._serial.startswith('MOCK-'):
             self._enable_ftp = False
             self._enable_camera = False
@@ -805,8 +805,11 @@ def create_local_ssl_context():
     """
     script_path = os.path.abspath(__file__)
     directory_path = os.path.dirname(script_path)
-    certfile = directory_path + "/bambu.cert"
-    context = ssl.create_default_context(cafile=certfile)
+    context = ssl.create_default_context()
+    for filename in ("bambu.cert", "bambu_p2s_250626.cert"):
+        path = os.path.join(directory_path, filename)
+        context.load_verify_locations(cafile=path)
+
     # Ignore "CA cert does not include key usage extension" error since python 3.13
     # See note in https://docs.python.org/3/library/ssl.html#ssl.create_default_context
     context.verify_flags &= ~ssl.VERIFY_X509_STRICT

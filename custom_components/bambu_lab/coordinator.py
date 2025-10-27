@@ -320,7 +320,7 @@ class BambuDataUpdateCoordinator(DataUpdateCoordinator):
             return { "Success": False,
                      "Error": "Invalid type specified: '{move}'." }
 
-        nozzle_temp = self.get_model().temperature.nozzle_temp
+        nozzle_temp = self.get_model().temperature.active_nozzle_temperature
         if force is not True and nozzle_temp < 170:
             LOGGER.error(f"Nozzle temperature too low to perform extrusion: {nozzle_temp}ºC")
             return { "Success": False,
@@ -776,7 +776,7 @@ class BambuDataUpdateCoordinator(DataUpdateCoordinator):
             case Options.CAMERA:
                 default = True
             case Options.FTP:
-                default = options.get('local_mqtt', False)
+                return True  # Always enabled, no option to disable
 
         return options.get(OPTION_NAME[option], default)
         
@@ -796,8 +796,6 @@ class BambuDataUpdateCoordinator(DataUpdateCoordinator):
             case Options.CAMERA:
                 force_reload = True
             case Options.IMAGECAMERA:
-                force_reload = True
-            case Options.FTP:
                 force_reload = True
 
         if force_reload:
