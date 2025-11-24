@@ -269,8 +269,14 @@ def get_printer_type(modules, default):
     if len(search(modules, lambda x: x.get('product_name', "") == "Bambu Lab P1P")):
       return 'P1P'
 
+    if len(search(modules, lambda x: x.get('product_name', "") == "Bambu Lab H2C")):
+      return 'H2C'
+
     if len(search(modules, lambda x: x.get('product_name', "") == "Bambu Lab H2D")):
       return 'H2D'
+
+    if len(search(modules, lambda x: x.get('product_name', "") == "Bambu Lab H2D Pro")):
+      return 'H2DP'
 
     if len(search(modules, lambda x: x.get('product_name', "") == "Bambu Lab H2S")):
       return 'H2S'
