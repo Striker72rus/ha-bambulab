@@ -781,11 +781,17 @@ class BambuDataUpdateCoordinator(DataUpdateCoordinator):
         await self.hass.config_entries.async_forward_entry_setups(self.config_entry, PLATFORMS)
         LOGGER.debug("_reinitialize_sensors DONE")
 
-        # Check for dead entities and clean them up
-        self._remove_dead_entities()
-
         # Versions may have changed so update those now that the device and sensors are ready.
         self._update_device_info()
+
+        # Allow HA entity platform to finish adding entities before we try to delete dead ones.
+        # Needs to delay two event loop ticks as entity addition is doubly async.
+        await asyncio.sleep(0)
+        await asyncio.sleep(0)
+
+        # Check for dead entities and clean them up
+        LOGGER.debug("Checking for dead entities to remove")
+        self._remove_dead_entities()
 
     def _remove_dead_entities(self):
         """Remove entities no longer created by the integration."""
@@ -800,7 +806,7 @@ class BambuDataUpdateCoordinator(DataUpdateCoordinator):
 
         for entity in entities:
             state = self.hass.states.get(entity.entity_id)
-            if state is None or state.attributes.get("restored") is True:
+            if state is not None and state.attributes.get("restored") is True:
                 LOGGER.debug(f"{entity.entity_id} is DEAD. Removing it.")
                 entity_registry.async_remove(entity.entity_id)
 
@@ -929,7 +935,6 @@ class BambuDataUpdateCoordinator(DataUpdateCoordinator):
         if not OPTION_NAME[option] in options:
             options[OPTION_NAME[option]] = self.get_option_enabled(option)
 
-        LOGGER.debug(f"options: {options}")
         # Only apply the change if it differs from the current setting.
         if options[OPTION_NAME[option]] != enable:
             options[OPTION_NAME[option]] = enable
@@ -941,6 +946,10 @@ class BambuDataUpdateCoordinator(DataUpdateCoordinator):
 
             # Refresh all entities to handle deleted/added entities.
             self._printer_ready()
+
+            if option == Options.CAMERA:
+                # Camera option changed, need to poke bambu client to update its camera state:
+                self.client.set_camera_enabled(enable)
 
     def get_option_value(self, option: Options) -> int:
         options = dict(self.config_entry.options)
@@ -966,21 +975,19 @@ class BambuDataUpdateCoordinator(DataUpdateCoordinator):
             # Force reload of integration to effect cache update.
             return await self.hass.config_entries.async_reload(self._entry.entry_id)
 
-    def _report_generic_issue(self, issue: str, force: bool):
-        if force:
-            # force generates a unique issue each time.
-            timestamp = int(time.time())
-            issue_id = f"{issue}_{self.get_model().info.serial}_{timestamp}"
-        else:
-            # One-time issue
-            issue_id = f"{issue}_{self.get_model().info.serial}"
+    def _report_generic_issue(self, issue: str, force: bool = False):
 
-            # Check if the issue already exists
-            registry = issue_registry.async_get(self._hass)
-            existing_issue = registry.async_get_issue(
-                domain=DOMAIN,
-                issue_id=issue_id,
-            )
+        issue_id = f"{issue}_{self.get_model().info.serial}"
+
+        # Check if the issue already exists
+        registry = issue_registry.async_get(self._hass)
+        existing_issue = registry.async_get_issue(domain=DOMAIN, issue_id=issue_id)
+
+        if force:
+            # Delete issue so we can re-create it but only ever have one in the list.
+            if existing_issue is not None:
+                registry.async_delete_issue(domain=DOMAIN, issue_id=issue_id)
+        else:
             if existing_issue is not None:
                 # Issue already exists, no need to create it again
                 return
@@ -1002,7 +1009,7 @@ class BambuDataUpdateCoordinator(DataUpdateCoordinator):
         )
 
     def _report_authentication_issue(self):
-        # issue_id's are permanent - once ignore they will never show again so we need a unique id 
+        # issue_id's are permanent - once ignored they will never show again so we need a unique id 
         # per occurrence per integration instance. That does mean we'll fire a new issue every single
         # print attempt since that's when we'll typically encounter the authentication failure as we
         # attempt to get slicer settings.
