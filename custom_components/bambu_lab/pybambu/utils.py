@@ -485,4 +485,8 @@ def change_filament_spool(self, hass, input, custom_filaments: dict, filaments):
         return
     LOGGER.debug(f"tray_info_idx: {tray_info_idx}")
     command["print"]["tray_info_idx"] = tray_info_idx
+
+    if command["print"]["ams_id"] >= 128 and command["print"]["ams_id"] < 255:
+        command['print']['slot_id'] = 0
+
     self.client.publish(command)
