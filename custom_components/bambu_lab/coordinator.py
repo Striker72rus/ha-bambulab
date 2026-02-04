@@ -39,6 +39,9 @@ from .const import (
 
 from .pybambu import BambuClient
 from .pybambu.const import (
+    AMS_MODELS,
+    AMS_DRYING_MODELS,
+    AMS_MODELS_AND_EXTERNAL_SPOOL,
     Features,
     Printers
 )
@@ -135,13 +138,13 @@ class BambuDataUpdateCoordinator(DataUpdateCoordinator):
         
         if event == "event_printer_bambu_authentication_failed":
             self._report_authentication_issue()
-
+        
         elif event == "event_printer_no_external_storage":
             self._report_no_external_storage_issue()
 
         elif event == "event_printer_live_view_disabled":
             self._report_live_view_disabled_issue()
-
+        
         elif event == "event_printer_mqtt_encryption_enabled":
             self._report_encryption_enabled_issue()
 
@@ -246,7 +249,7 @@ class BambuDataUpdateCoordinator(DataUpdateCoordinator):
             via_device_id = entity_device.via_device_id
             if via_device_id == hadevice.id:
                 return True
-
+            
         return False
 
     def _get_device_from_entity(self, entity_id):
@@ -267,7 +270,7 @@ class BambuDataUpdateCoordinator(DataUpdateCoordinator):
         if not self._is_service_call_for_me(data):
             # Call is not for this instance.
             return
-
+        
         service_call_name = data['service']
         write_action = True
         if service_call_name == 'get_filament_data':
@@ -399,7 +402,7 @@ class BambuDataUpdateCoordinator(DataUpdateCoordinator):
         self.client.publish(command)
 
         return { "Success": True }
-
+    
     def _get_ams_index_from_device(self, ams_device):
         ams_serial = next(iter(ams_device.identifiers))[1]
         ams_index = None
@@ -424,6 +427,22 @@ class BambuDataUpdateCoordinator(DataUpdateCoordinator):
 
         return ams_index, tray
 
+    def _get_ams_device_id(self, data: dict):
+        device_id = data.get('device_id')
+        if device_id is None:
+            LOGGER.error(f"Invalid data payload, missing device_id: {data}")
+            return None
+
+        dev_reg = device_registry.async_get(self._hass)
+        ams_device = dev_reg.async_get(device_id)
+        model = ams_device.model
+        if model not in AMS_MODELS_AND_EXTERNAL_SPOOL:
+            LOGGER.error("Passed device is not an AMS or external spool.")
+            return None
+
+        return device_id
+
+
     def _get_ams_device_and_tray(self, data: dict):
         entity_id = data.get('entity_id')
         if entity_id is None:
@@ -435,7 +454,7 @@ class BambuDataUpdateCoordinator(DataUpdateCoordinator):
         if ams_device is None:
             LOGGER.error("Unable to find AMS or external spool from entity")
             return None
-
+        
         # Get the device the AMS is connected to.
         ams_parent_device_id = ams_device.via_device_id
 
@@ -452,12 +471,12 @@ class BambuDataUpdateCoordinator(DataUpdateCoordinator):
         device_id = data["device_id"]
         if device_id is None:
             LOGGER.error(f"Invalid data payload, missing device_id: {data}")
-            return None
+            return False
 
         dev_reg = device_registry.async_get(self._hass)
         ams_device = dev_reg.async_get(device_id)
         model = ams_device.model
-        if (model != 'AMS 2 Pro') and (model != 'AMS HT'):
+        if model not in AMS_DRYING_MODELS:
             LOGGER.error("Passed device is not an AMS 2 or AMS HT.")
             return False
 
@@ -582,7 +601,7 @@ class BambuDataUpdateCoordinator(DataUpdateCoordinator):
         
         return combined_data
 
-    def _service_call_load_unload_filament(self, load: bool, data: dict):
+    def _service_call_load_filament(self, data: dict):
         ams_device, entity_id = self._get_ams_device_and_tray(data)
         if entity_id is None:
             return False
@@ -649,20 +668,34 @@ class BambuDataUpdateCoordinator(DataUpdateCoordinator):
 
         command = SWITCH_AMS_TEMPLATE
         command['print']['ams_id'] = ams_index
-        if load:
-            command['print']['slot_id'] = tray
-            command['print']['target'] = target
-            command['print']['tar_temp'] = temperature
-        else:
-            command['print']['slot_id'] = 255
-            command['print']['target'] = 255
+        command['print']['slot_id'] = tray
+        command['print']['target'] = target
+        command['print']['tar_temp'] = temperature
         self.client.publish(command)
 
-    def _service_call_load_filament(self, data: dict):
-        return self._service_call_load_unload_filament(True, data)
-
     def _service_call_unload_filament(self, data: dict):
-        return self._service_call_load_unload_filament(False, data)
+        device_id = self._get_ams_device_id(data)
+        if device_id is None:
+            return False
+
+        dev_reg = device_registry.async_get(self._hass)
+        ams_device = dev_reg.async_get(device_id)
+        ams_index = self._get_ams_index_from_device(ams_device)
+        if ams_index is None:
+            # External Spool
+            ams_index = 255
+
+        # Printers with older firmware require a different method to change
+        # filament. For now, only support newer firmware.
+        if not self.get_model().supports_feature(Features.AMS_SWITCH_COMMAND):
+            LOGGER.error(f"Loading filament is not available for this printer's firmware version, please update it")
+            return False
+
+        command = SWITCH_AMS_TEMPLATE
+        command['print']['ams_id'] = ams_index
+        command['print']['slot_id'] = 255
+        command['print']['target'] = 255
+        self.client.publish(command)
 
     def _service_call_print_project_file(self, data: dict):
         command = PRINT_PROJECT_FILE_TEMPLATE
