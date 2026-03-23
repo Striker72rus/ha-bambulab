@@ -164,7 +164,7 @@ CHANGE_FILAMENT_TEMPLATE = {
          "nozzle_temp_max": 280,
          "tray_type": "",
          "setting_id": "",
-         "slot_id": 0
+         "slot_id": ""
      }
  }
 
