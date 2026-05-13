@@ -299,7 +299,7 @@ class Device:
         elif feature == Features.HOTEND_RACK:
             return model == Printers.H2C and len(self.hotend_rack.hotends) > 0
         elif feature == Features.ACTIVE_CHAMBER_HEATER:
-            return model in (x1e_printer | h2_printers)
+            return model in (x1e_printer | h2_printers | x2_printers)
         return False
     
     def supports_sw_version(self, version: str) -> bool:
